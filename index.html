@@ -4,20 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>School Management System</title>
-<link rel="dns-prefetch" href="https://www.gstatic.com">
-<link rel="dns-prefetch" href="https://firestore.googleapis.com">
-<link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <meta name="theme-color" content="#1a237e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="School App">
 <link rel="manifest" href="manifest.json">
-<!-- Fonts removed for speed -->
-<!-- SheetJS loaded lazily when Bulk Upload is opened -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800;900&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+<!-- SheetJS for Excel reading -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{--primary:#1a237e;--primary-l:#3949ab;--primary-d:#0d1642;--accent:#f9a825;--danger:#c62828;--success:#2e7d32;--warn:#e65100;--bg:#eef0f5;--text:#1a1a2e;--muted:#6b7280;--border:#e5e7eb;--sw:260px}
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,'Noto Sans Devanagari',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+body{font-family:'Noto Sans','Noto Sans Devanagari',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
 .login-wrap{min-height:100vh;background:linear-gradient(135deg,var(--primary-d),var(--primary) 55%,var(--primary-l));display:flex;align-items:center;justify-content:center;padding:20px}
 .login-card{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 30px 70px rgba(0,0,0,.35)}
@@ -168,25 +166,6 @@ tbody tr:hover{background:#f6f8ff}
   .page{padding:14px}.fgrid{grid-template-columns:1fr}.fgrid .fw{grid-column:1}
   .fee-sum{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}.modal{padding:18px}
 }
-
-/* ── SALARY STATUS ── */
-.sal-row-paid{background:#f0fff4!important}
-.sal-row-unpaid{background:#fff5f5!important}
-.sal-row-adv{background:#fffbeb!important}
-.sal-status{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.ss-paid{background:#e8f5e9;color:#2e7d32}
-.ss-unpaid{background:#ffebee;color:#c62828}
-.ss-advance{background:#fff8e1;color:#c17900}
-.ss-partial{background:#fff3e0;color:#e65100}
-/* ── OPERATOR ROLE ── */
-.role-op .dir-only{display:none!important}
-/* ── FEE EXPORT FILTERS ── */
-.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end}
-.filter-row .fg{margin-bottom:0;min-width:140px}
-/* ── PERMISSION TAGS ── */
-.perm-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e8eaf6;color:#1a237e;margin:3px}
-.perm-tag .rm{cursor:pointer;color:#c62828;margin-left:4px}
-
 @media print{.sidebar,.topbar,.no-print{display:none!important}.main{margin-left:0!important}.page{padding:0!important}}
 </style>
 </head>
@@ -229,8 +208,6 @@ tbody tr:hover{background:#f6f8ff}
       <div class="nav-item" id="n-teachers" onclick="go('teachers')"><span class="ni">👩‍🏫</span> All Teachers</div>
       <div class="nav-sec" id="ns-comp">प्रतियोगिता / Competition</div>
       <div class="nav-item" id="n-comp" onclick="go('competition')"><span class="ni">🏆</span> Competition Exams</div>
-      <div class="nav-sec" id="ns-fee-export">Fee Export</div>
-      <div class="nav-item" id="n-fee-export" onclick="go('feeExport')"><span class="ni">📊</span> Due/Advance Export</div>
       <div class="nav-sec">रिपोर्ट / Reports</div>
       <div class="nav-item" onclick="go('reports')"><span class="ni">📋</span> Reports</div>
       <div class="nav-sec" id="ns-settings">सेटिंग / Settings</div>
@@ -263,9 +240,9 @@ tbody tr:hover{background:#f6f8ff}
   </div>
 </div>
 
-<script type="module" defer>
+<script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp}
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp,orderBy}
   from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,updatePassword,createUserWithEmailAndPassword}
   from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -273,13 +250,13 @@ import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,updatePassw
 // ══ YOUR FIREBASE CONFIG ══
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",
-  authDomain: "institute-op.firebaseapp.com",
-  projectId: "institute-op",
-  storageBucket: "institute-op.firebasestorage.app",
-  messagingSenderId: "218000499296",
-  appId: "1:218000499296:web:e53291c1f26574ff4e1905",
-  measurementId: "G-10Z23ELHTD"
+  apiKey: "AIzaSyCaFEIJbHpfOhldbeehsWdMGk35hFWN1G4",
+  authDomain: "school-operation-manage.firebaseapp.com",
+  projectId: "school-operation-manage",
+  storageBucket: "school-operation-manage.firebasestorage.app",
+  messagingSenderId: "122531044879",
+  appId: "1:122531044879:web:c0f19d336a36c6bab60d7a",
+  measurementId: "G-CMR8XBM1NK"
 };
 
 const fbApp=initializeApp(firebaseConfig);
@@ -301,22 +278,6 @@ async function getAll(c,...cons){
 async function getOne(c,id){const s=await getDoc(ref_(c,id));return s.exists()?{id:s.id,...s.data()}:null;}
 async function save_(c,id,data){await setDoc(ref_(c,id),{...data,updatedAt:serverTimestamp()},{merge:true});}
 async function del_(c,id){await deleteDoc(ref_(c,id));}
-// ── IN-MEMORY CACHE for fast repeated page loads ──
-const _cache={};
-const _cacheTime={};
-const CACHE_TTL=30000; // 30 seconds
-async function getAllCached(c,...cons){
-  if(!cons.length){
-    const now=Date.now();
-    if(_cache[c]&&(now-(_cacheTime[c]||0))<CACHE_TTL)return _cache[c];
-    const res=await getAll(c,...cons);
-    _cache[c]=res;_cacheTime[c]=now;
-    return res;
-  }
-  return getAll(c,...cons);
-}
-function clearCache(c){delete _cache[c];delete _cacheTime[c];}
-
 
 // ── UI HELPERS ──
 const MY=(m,y)=>MN[m-1]+' '+y;
@@ -325,22 +286,6 @@ const ini=n=>(n||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0
 const avH=(n,s=38,f=14)=>`<div class="av" style="width:${s}px;height:${s}px;font-size:${f}px">${ini(n)}</div>`;
 const cur=n=>'₹'+Number(n||0).toLocaleString('en-IN');
 const isDir=()=>ROLE==='director';
-const isOp=()=>ROLE==='operator';
-const isDirOrOp=()=>isDir()||isOp();
-// Check if operator has delete permission for a student
-function opCanDelete(s){
-  if(isDir())return true;
-  if(!isOp())return false;
-  const perms=window.__opPerms||[];
-  return perms.some(p=>{
-    if(p.type==='class')return clsL(s.class,s.customClass)===p.value;
-    if(p.type==='rollRange'&&s.rollNumber){
-      const roll=Number(s.rollNumber);
-      return roll>=p.from&&roll<=p.to;
-    }
-    return false;
-  });
-}
 const spin_=()=>`<div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>`;
 const err_=m=>`<div class="alert a-danger">❌ ${m}</div>`;
 const uid_=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
@@ -357,29 +302,13 @@ function toast(msg,type='ok'){
 // ── AUTH ──
 onAuthStateChanged(auth,async user=>{
   if(user){
-    CU=user;
-    // Check sessionStorage cache first (avoids DB call on page refresh)
-    const cached=sessionStorage.getItem('udata_'+user.uid);
-    if(cached){
-      UDATA=JSON.parse(cached);ROLE=UDATA.role;
-    }else{
-      UDATA=await getOne('users',user.uid);
-      if(!UDATA){await signOut(auth);showLogin();return;}
-      ROLE=UDATA.role;
-      sessionStorage.setItem('udata_'+user.uid,JSON.stringify(UDATA));
-    }
-    // Cache settings too
-    const cachedInst=sessionStorage.getItem('inst');
-    if(cachedInst){INST=cachedInst;}
-    else{
-      const st=await getOne('settings','main');
-      if(st?.institute_name){INST=st.institute_name;sessionStorage.setItem('inst',INST);}
-    }
+    CU=user;UDATA=await getOne('users',user.uid);
+    if(!UDATA){await signOut(auth);showLogin();return;}
+    ROLE=UDATA.role;
+    const st=await getOne('settings','main');
+    if(st?.institute_name)INST=st.institute_name;
     showApp();
-  }else{
-    sessionStorage.clear();
-    showLogin();
-  }
+  }else{showLogin();}
 });
 
 function showLogin(){
@@ -391,21 +320,13 @@ function showApp(){
   document.getElementById('loginPage').style.display='none';
   document.getElementById('app').style.display='flex';
   document.getElementById('sbName').textContent='🏫 '+INST;
-  const roleLabel=isDir()?'👑 Director':isOp()?'📝 Operator':'👩‍🏫 '+(UDATA?.name||'Teacher');
-  document.getElementById('sbRole').textContent=roleLabel;
+  document.getElementById('sbRole').textContent=isDir()?'👑 Director':'👩‍🏫 '+(UDATA?.name||'Teacher');
   document.getElementById('tbUser').textContent=UDATA?.name||CU.email;
   document.getElementById('loginName').textContent=INST;
-
-  // Load operator delete permissions
-  if(isOp()){
-    getOne('settings','main').then(st=>{window.__opPerms=st?.operatorDeletePerms||[];});
-  }
-
-  // Visibility rules
-  const dirOnly=['n-teachers','ns-teacher','n-settings','ns-settings','ns-fee-export','n-fee-export'];
-  const dirAndOp=['n-bulkup','n-comp','ns-comp'];
-  dirOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isDir()?'':'none';});
-  dirAndOp.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isDirOrOp()?'':'none';});
+  // Director-only items
+  ['n-teachers','ns-teacher','n-settings','ns-settings','n-bulkup','n-comp','ns-comp'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display=isDir()?'':'none';
+  });
   go('dashboard');
 }
 
@@ -427,8 +348,7 @@ let PAGE='dashboard',PARAMS={};
 const TITLES={dashboard:'Dashboard',students:'Students / छात्र',hostel:'Hostel Students',
   teachers:'Teachers / शिक्षक',reports:'Reports / रिपोर्ट',settings:'Settings / सेटिंग',
   studentDetail:'Student Detail',teacherDetail:'Teacher Detail',
-  bulkUpload:'Bulk Upload / बल्क अपलोड',competition:'Competition Exams / प्रतियोगिता',
-  feeExport:'Due / Advance Export'};
+  bulkUpload:'Bulk Upload / बल्क अपलोड',competition:'Competition Exams / प्रतियोगिता'};
 
 window.go=async function(page,params={}){
   closeSb();PAGE=page;PARAMS=params;
@@ -449,7 +369,6 @@ window.go=async function(page,params={}){
     else if(page==='teacherDetail')html=await pgTeacherDetail(params.id);
     else if(page==='bulkUpload')html=pgBulkUpload();
     else if(page==='competition')html=await pgCompetition();
-    else if(page==='feeExport')html=await pgFeeExport();
     setH('pageContent',html);
   }catch(e){setH('pageContent',err_(e.message||'Page load error'));console.error(e);}
   window.scrollTo(0,0);
@@ -463,7 +382,7 @@ window.closeModal=()=>{document.getElementById('modalWrap').style.display='none'
 //  DASHBOARD
 // ══════════════════════════════════════════════
 async function pgDash(){
-  const [students,teachers,fees]=await Promise.all([getAllCached('students'),getAllCached('teachers'),isDir()?getAllCached('fees'):Promise.resolve([])]);
+  const [students,teachers,fees]=await Promise.all([getAll('students'),getAll('teachers'),getAll('fees')]);
   const now=new Date(),cm=now.getMonth()+1,cy=now.getFullYear();
   const hostel=students.filter(s=>s.type==='hostel').length;
 
@@ -531,7 +450,7 @@ async function pgDash(){
 //  BULK UPLOAD
 // ══════════════════════════════════════════════
 function pgBulkUpload(){
-  if(!isDirOrOp())return err_('Access Denied');
+  if(!isDir())return err_('Access Denied');
   return `
   <div class="card" style="margin-bottom:20px">
     <div class="card-hd"><div class="card-title">📤 Bulk Upload Students</div></div>
@@ -663,25 +582,17 @@ function parseCSV(text){
 
 function parseExcel(file){
   return new Promise((resolve,reject)=>{
-    // Lazy load SheetJS only when needed
-    function doRead(){
-      const reader=new FileReader();
-      reader.onload=e=>{
-        try{
-          const wb=XLSX.read(e.target.result,{type:'array'});
-          const ws=wb.Sheets[wb.SheetNames[0]];
-          const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-          resolve(data);
-        }catch(err){reject(err);}
-      };
-      reader.onerror=reject;
-      reader.readAsArrayBuffer(file);
-    }
-    if(window.XLSX){doRead();return;}
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
-    s.onload=doRead;s.onerror=()=>reject(new Error('XLSX library load failed'));
-    document.head.appendChild(s);
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const wb=XLSX.read(e.target.result,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const data=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        resolve(data);
+      }catch(err){reject(err);}
+    };
+    reader.onerror=reject;
+    reader.readAsArrayBuffer(file);
   });
 }
 
@@ -898,11 +809,11 @@ async function doImport(students){
 //  STUDENTS
 // ══════════════════════════════════════════════
 async function pgStudents(){
-  const sts=await getAllCached('students');
+  const sts=await getAll('students');
   window.__sts=sts;
   return`
   <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px" class="no-print">
-    ${isDirOrOp()?`<div style="display:flex;gap:8px">
+    ${isDir()?`<div style="display:flex;gap:8px">
       <button class="btn btn-primary" onclick="addStuModal()">➕ Add Student</button>
       <button class="btn btn-accent" onclick="go('bulkUpload')">📤 Bulk Upload</button>
     </div>`:'<div></div>'}
@@ -951,9 +862,8 @@ function stuTable(sts){
       <td><span class="badge ${s.type==='hostel'?'b-ora':'b-green'}">${s.type==='hostel'?'🏠 Hostel':'🚶 Day Scholar'}</span></td>
       <td><div style="display:flex;gap:5px">
         <button class="btn btn-sm btn-primary" onclick="go('studentDetail',{id:'${s.id}'})">👁</button>
-        ${isDirOrOp()?`<button class="btn btn-sm btn-outline" onclick="editStuModal('${s.id}')">✏️</button>`:''}
-        ${isDir()?`<button class="btn btn-sm btn-danger" onclick="delStu('${s.id}')">🗑</button>`:
-          isOp()&&opCanDelete(s)?`<button class="btn btn-sm btn-danger" onclick="delStu('${s.id}')">🗑</button>`:''}
+        ${isDir()?`<button class="btn btn-sm btn-outline" onclick="editStuModal('${s.id}')">✏️</button>
+                   <button class="btn btn-sm btn-danger" onclick="delStu('${s.id}')">🗑</button>`:''}
       </div></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
@@ -1032,7 +942,7 @@ window.saveStu=async function(eid){
       city:document.getElementById('scit').value.trim(),
       startMonth:Number(smm),startYear:Number(smy),
       type:document.getElementById('styp').value,...(photo?{photo}:{})});
-    clearCache('students');closeModal();toast('✅ Student saved!');go('students');
+    closeModal();toast('✅ Student saved!');go('students');
   }catch(e){er.style.display='block';er.textContent='❌ '+e.message;btn.disabled=false;btn.textContent='💾 Save';}
 };
 window.delStu=async function(id){
@@ -1041,7 +951,7 @@ window.delStu=async function(id){
     await del_('students',id);
     const fes=await getAll('fees',where('studentId','==',id));
     await Promise.all(fes.map(f=>del_('fees',f.id)));
-    clearCache('students');toast('Deleted!','info');go('students');
+    toast('Deleted!','info');go('students');
   }catch(e){toast('Error: '+e.message,'err');}
 };
 
@@ -1112,7 +1022,7 @@ async function pgStudentDetail(id){
             .map(([l,v])=>`<div class="ii"><div class="il">${l}</div><div class="iv">${v||'-'}</div></div>`).join('')}
         </div>
       </div>
-      ${isDirOrOp()?`<button class="btn btn-sm btn-outline no-print" onclick="editStuModal('${s.id}')">✏️ Edit</button>`:''}
+      ${isDir()?`<button class="btn btn-sm btn-outline no-print" onclick="editStuModal('${s.id}')">✏️ Edit</button>`:''}
     </div>
   </div>
   ${feeSectionHTML}`;
@@ -1159,7 +1069,7 @@ window.saveFee=async function(eid,sid){
       payDate:document.getElementById('fdt').value,
       payMode:document.getElementById('fpm').value,
       remarks:document.getElementById('fr').value.trim()});
-    clearCache('fees');closeModal();toast('✅ Payment saved!');go('studentDetail',{id:sid});
+    closeModal();toast('✅ Payment saved!');go('studentDetail',{id:sid});
   }catch(e){er.style.display='block';er.textContent='❌ '+e.message;btn.disabled=false;btn.textContent='💾 Save';}
 };
 window.delFee=async function(fid,sid){
@@ -1214,11 +1124,11 @@ async function pgHostel(){
 //  COMPETITION EXAMS (Director Only)
 // ══════════════════════════════════════════════
 async function pgCompetition(){
-  if(!isDirOrOp())return err_('Access Denied');
+  if(!isDir())return err_('Access Denied — Director only');
   const[exams,students]=await Promise.all([getAll('competitions'),getAll('students')]);
   return`
   <div style="display:flex;justify-content:flex-end;margin-bottom:16px" class="no-print">
-    ${isDir()?`<button class="btn btn-primary" onclick="addExamModal()">➕ Add Competition Exam</button>`:''}
+    <button class="btn btn-primary" onclick="addExamModal()">➕ Add Competition Exam</button>
   </div>
   ${!exams.length?`<div class="card"><div class="empty"><div class="ei">🏆</div><p>कोई Competition Exam नहीं। Add करें।</p></div></div>`:
   `<div style="display:grid;gap:16px">
@@ -1233,8 +1143,8 @@ async function pgCompetition(){
         </div>
         <div style="display:flex;gap:8px" class="no-print">
           <button class="btn btn-sm btn-primary" onclick="viewExamResults('${ex.id}')">📊 Results</button>
-          ${isDirOrOp()?`<button class="btn btn-sm btn-accent" onclick="addResultModal('${ex.id}')">➕ Add Result</button>`:''}
-          ${isDir()?`<button class="btn btn-sm btn-danger" onclick="delExam('${ex.id}')">🗑</button>`:''}
+          <button class="btn btn-sm btn-accent" onclick="addResultModal('${ex.id}')">➕ Add Result</button>
+          <button class="btn btn-sm btn-danger" onclick="delExam('${ex.id}')">🗑</button>
         </div>
       </div>
       <div id="exam-summary-${ex.id}" class="exam-summary"></div>
@@ -1308,13 +1218,6 @@ window.addResultModal=async function(examId){
         <option value="merit">🥇 Merit List</option>
         <option value="pending">⏳ Pending / Awaited</option>
       </select></div>
-    <div class="fg"><label>Exam Fee ₹</label><input type="number" id="rexamfee" placeholder="e.g. 500"></div>
-    <div class="fg"><label>Fee Status</label>
-      <select id="rfeestatus">
-        <option value="paid">✅ Paid</option>
-        <option value="unpaid">❌ Unpaid</option>
-        <option value="waived">🎁 Waived</option>
-      </select></div>
     <div class="fg fw"><label>Remarks</label><input id="rremarks" placeholder="Any note..."></div>
   </div>
   <div id="rErr" class="alert a-danger" style="display:none"></div>
@@ -1366,8 +1269,6 @@ window.saveResult=async function(examId){
     totalMarks:Number(document.getElementById('rtotal').value)||null,
     rank:document.getElementById('rrank').value.trim(),
     result:document.getElementById('rresult').value,
-    examFee:Number(document.getElementById('rexamfee').value)||null,
-    feeStatus:document.getElementById('rfeestatus').value,
     remarks:document.getElementById('rremarks').value.trim()
   });
   closeModal();toast('✅ Result saved!');go('competition');
@@ -1389,7 +1290,7 @@ window.viewExamResults=async function(examId){
   </div>
   ${!results.length?`<div class="empty"><div class="ei">📊</div><p>कोई result नहीं</p></div>`:
   `<div class="tw"><table>
-    <thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th>Class</th><th>Marks</th><th>Rank</th><th>Exam Fee</th><th>Result</th><th></th></tr></thead>
+    <thead><tr><th>#</th><th>Name</th><th>Roll No.</th><th>Class</th><th>Marks</th><th>Rank</th><th>Result</th><th></th></tr></thead>
     <tbody>${results.map((r,i)=>`<tr>
       <td>${i+1}</td>
       <td><strong>${r.studentName}</strong></td>
@@ -1397,7 +1298,6 @@ window.viewExamResults=async function(examId){
       <td>${r.class||'-'}</td>
       <td>${r.marks!=null?`${r.marks}${r.totalMarks?'/'+r.totalMarks:''}`:'-'}</td>
       <td>${r.rank||'-'}</td>
-      <td>${r.examFee?`<span class="badge ${r.feeStatus==='paid'?'b-green':r.feeStatus==='waived'?'b-gold':'b-red'}">${cur(r.examFee)} ${r.feeStatus||''}</span>`:'-'}</td>
       <td><span class="comp-badge ${resultBadge[r.result]||'b-blue'}">${resultLabel[r.result]||r.result}</span></td>
       <td><button class="btn btn-sm btn-danger" onclick="delResult('${r.id}','${examId}')">🗑</button></td>
     </tr>`).join('')}</tbody>
@@ -1469,8 +1369,6 @@ function tchForm(t={}){
     <div class="fg fw"><label>Classes Assigned</label><input id="tcls" value="${t.classes||''}" placeholder="e.g. Class 9, Class 10"></div>
     <div class="fg"><label>Joining Month ★</label><select id="tjm">${mo}</select></div>
     <div class="fg"><label>Joining Year ★</label><input type="number" id="tjy" value="${t.joinYear||now.getFullYear()}" min="2020" max="2035"></div>
-    <div class="fg"><label>Monthly Salary ₹</label><input type="number" id="tmsal" value="${t.monthlySalary||''}" placeholder="e.g. 12000"></div>
-    <div class="fg"><label>Previous Year Pending ₹</label><input type="number" id="tprev" value="${t.prevYearPending||0}" placeholder="0"></div>
   </div>
   <div id="tErr" class="alert a-danger" style="display:none"></div>
   <div class="form-actions">
@@ -1504,9 +1402,7 @@ window.saveTch=async function(eid,existUid){
       village:document.getElementById('tvil').value.trim(),
       city:document.getElementById('tcit').value.trim(),
       classes:document.getElementById('tcls').value.trim(),
-      joinMonth:Number(jm),joinYear:Number(jy),
-      monthlySalary:Number(document.getElementById('tmsal').value)||0,
-      prevYearPending:Number(document.getElementById('tprev').value)||0});
+      joinMonth:Number(jm),joinYear:Number(jy)});
     closeModal();
     if(!eid)alert(`✅ Teacher Added!\nEmail: ${email}\nPassword: teacher@123`);
     else toast('✅ Teacher updated!');
@@ -1531,28 +1427,7 @@ async function pgTeacherDetail(id){
   if(!isDir())return err_('Access Denied');
   const[t,sals]=await Promise.all([getOne('teachers',id),getAll('salaries',where('teacherId','==',id))]);
   if(!t)return err_('Teacher not found');
-  const now=new Date(),cm=now.getMonth()+1,cy=now.getFullYear();
-  const monthlySalary=Number(t.monthlySalary||0);
-  const totPaid=sals.filter(s=>s.status==='paid'||!s.status).reduce((a,s)=>a+Number(s.amount||0),0);
-  const totAdv=sals.filter(s=>s.status==='advance').reduce((a,s)=>a+Number(s.amount||0),0);
-  // Calculate pending months (from join to now)
-  const joinM=Number(t.joinMonth||1),joinY=Number(t.joinYear||cy);
-  const totalMonths=Math.max(0,(cy-joinY)*12+(cm-joinM)+1);
-  const prevYearPending=Number(t.prevYearPending||0);
-  const totalExpected=totalMonths*monthlySalary+prevYearPending;
-  const netPending=Math.max(0,totalExpected-totPaid);
-
-  // Month-wise salary grid
-  const salByKey={};
-  sals.forEach(s=>{salByKey[`${s.year}-${String(s.month).padStart(2,'0')}`]=s;});
-
-  // Last 12 months
-  const months12=[];
-  for(let i=0;i<12;i++){
-    let m=cm-i,y=cy;if(m<=0){m+=12;y--;}
-    months12.push({m,y,key:`${y}-${String(m).padStart(2,'0')}`});
-  }
-
+  const totSal=sals.reduce((a,s)=>a+Number(s.amount||0),0);
   return`
   <div style="margin-bottom:14px" class="no-print"><button class="btn btn-outline btn-sm" onclick="go('teachers')">← Back</button></div>
   <div class="card" style="margin-bottom:18px">
@@ -1563,71 +1438,21 @@ async function pgTeacherDetail(id){
         <div style="margin-top:6px"><span class="badge b-blue">${t.designation||'Teacher'}</span></div>
         <div class="info-row">
           ${[['Mobile',t.mobile],['Email',t.email],['Village',t.village],['City',t.city],
-             ['Classes',t.classes],['Joined',MY(t.joinMonth,t.joinYear)]]
+             ['Classes',t.classes],['Joined',MY(t.joinMonth,t.joinYear)],['Total Salary',cur(totSal)]]
             .map(([l,v])=>`<div class="ii"><div class="il">${l}</div><div class="iv">${v||'-'}</div></div>`).join('')}
         </div>
       </div>
       <button class="btn btn-sm btn-outline no-print" onclick="editTchModal('${t.id}')">✏️</button>
     </div>
   </div>
-
-  <!-- Salary Summary Cards -->
-  <div class="fee-sum" style="margin-bottom:18px">
-    <div class="fbox due"><div class="fa">${cur(monthlySalary)}</div><div class="fl">Monthly Salary</div></div>
-    <div class="fbox paid"><div class="fa">${cur(totPaid)}</div><div class="fl">Total Paid</div></div>
-    <div class="fbox adv"><div class="fa">${cur(totAdv)}</div><div class="fl">Advance Paid</div></div>
-    <div class="fbox bal"><div class="fa">${cur(netPending)}</div><div class="fl">Net Pending</div></div>
-  </div>
-
-  ${prevYearPending>0?`<div class="alert a-warn" style="margin-bottom:16px">⚠️ Previous Year Pending Salary: <strong>${cur(prevYearPending)}</strong></div>`:''}
-
-  <!-- Month-wise Salary Grid -->
-  <div class="card" style="margin-bottom:18px">
-    <div class="card-hd">
-      <div class="card-title">📅 Last 12 Months Status</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-sm btn-primary" onclick="addSalModal('${t.id}')">➕ Add Payment</button>
-        <button class="btn btn-sm btn-outline" onclick="setMonthSalModal('${t.id}','${monthlySalary}')">⚙️ Set Monthly Salary</button>
-      </div>
-    </div>
-    <div class="tw"><table>
-      <thead><tr><th>Month</th><th>Expected</th><th>Status</th><th>Paid Amount</th><th>Date</th><th>Remarks</th><th></th></tr></thead>
-      <tbody>${months12.map(({m,y,key})=>{
-        const s=salByKey[key];
-        const expected=monthlySalary;
-        let statusBadge,statusClass;
-        if(!s||s.status==='unpaid'){statusBadge='❌ Unpaid';statusClass='ss-unpaid';}
-        else if(s.status==='advance'){statusBadge='🔼 Advance';statusClass='ss-advance';}
-        else if(Number(s.amount)>=expected&&expected>0){statusBadge='✅ Paid';statusClass='ss-paid';}
-        else if(Number(s.amount||0)>0){statusBadge='⚠️ Partial';statusClass='ss-partial';}
-        else{statusBadge='❌ Unpaid';statusClass='ss-unpaid';}
-        return`<tr class="${s&&(s.status!=='unpaid')?(s.status==='advance'?'sal-row-adv':'sal-row-paid'):'sal-row-unpaid'}">
-          <td><strong>${MY(m,y)}</strong></td>
-          <td>${cur(expected)}</td>
-          <td><span class="sal-status ${statusClass}">${statusBadge}</span></td>
-          <td>${s?cur(s.amount):'-'}</td>
-          <td>${s?.paidDate||'-'}</td>
-          <td>${s?.remarks||'-'}</td>
-          <td><div style="display:flex;gap:4px">
-            ${s?`<button class="btn btn-sm btn-outline" onclick="editSalModal('${s.id}','${t.id}')">✏️</button>
-                 <button class="btn btn-sm btn-danger" onclick="delSal('${s.id}','${t.id}')">🗑</button>`
-              :`<button class="btn btn-sm btn-success btn-sm" onclick="quickPay('${t.id}',${m},${y},${expected})">💳 Pay</button>`}
-          </div></td>
-        </tr>`;
-      }).join('')}
-      </tbody>
-    </table></div>
-  </div>
-
-  <!-- All Salary Records -->
   <div class="card">
-    <div class="card-hd"><div class="card-title">💼 All Payment Records</div></div>
-    ${!sals.length?`<div class="empty"><div class="ei">💼</div><p>कोई salary record नहीं</p></div>`:
-    `<div class="tw"><table><thead><tr><th>Month</th><th>Amount</th><th>Type</th><th>Date</th><th>Remarks</th><th></th></tr></thead>
-    <tbody>${sals.sort((a,b)=>b.year*100+b.month-(a.year*100+a.month)).map(s=>`<tr>
+    <div class="card-hd"><div class="card-title">💼 Salary Records</div>
+      <button class="btn btn-sm btn-primary no-print" onclick="addSalModal('${t.id}')">➕ Add</button></div>
+    ${!sals.length?`<div class="empty"><div class="ei">💼</div><p>कोई salary नहीं</p></div>`:
+    `<div class="tw"><table><thead><tr><th>Month</th><th>Amount</th><th>Date</th><th>Remarks</th><th></th></tr></thead>
+    <tbody>${sals.sort((a,b)=>a.year*100+a.month-(b.year*100+b.month)).map(s=>`<tr>
       <td><strong>${MY(s.month,s.year)}</strong></td>
       <td><span class="badge b-green">${cur(s.amount)}</span></td>
-      <td><span class="sal-status ${s.status==='advance'?'ss-advance':s.status==='unpaid'?'ss-unpaid':'ss-paid'}">${s.status==='advance'?'🔼 Advance':s.status==='unpaid'?'❌ Unpaid':'✅ Paid'}</span></td>
       <td>${s.paidDate||'-'}</td><td>${s.remarks||'-'}</td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-sm btn-outline" onclick="editSalModal('${s.id}','${t.id}')">✏️</button>
@@ -1637,53 +1462,6 @@ async function pgTeacherDetail(id){
   </div>`;
 }
 
-window.setMonthSalModal=function(tid,current){
-  openModal('⚙️ Set Monthly Salary',`
-  <div class="fg"><label>Monthly Salary ₹ ★</label>
-    <input type="number" id="msal" value="${current}" placeholder="e.g. 12000"></div>
-  <div class="fg"><label>Previous Year Pending ₹ (if any)</label>
-    <input type="number" id="prevpend" placeholder="0"></div>
-  <div class="form-actions">
-    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveMonthSal('${tid}')">💾 Save</button>
-  </div>`);
-};
-window.saveMonthSal=async function(tid){
-  const msal=Number(document.getElementById('msal').value)||0;
-  const prev=Number(document.getElementById('prevpend').value)||0;
-  await save_('teachers',tid,{monthlySalary:msal,prevYearPending:prev});
-  clearCache('teachers');
-  closeModal();toast('✅ Salary settings saved!');go('teacherDetail',{id:tid});
-};
-
-window.quickPay=function(tid,month,year,amount){
-  openModal(`💳 Quick Pay — ${MY(month,year)}`,`
-  <div class="fg"><label>Amount ₹ ★</label><input type="number" id="qpa" value="${amount}" placeholder="Amount"></div>
-  <div class="fg"><label>Payment Date</label><input type="date" id="qpd" value="${new Date().toISOString().split('T')[0]}"></div>
-  <div class="fg"><label>Type</label>
-    <select id="qpt">
-      <option value="paid">✅ Salary Paid</option>
-      <option value="advance">🔼 Advance Payment</option>
-      <option value="partial">⚠️ Partial Payment</option>
-    </select></div>
-  <div class="fg"><label>Remarks</label><input id="qpr" placeholder="Optional"></div>
-  <div class="form-actions">
-    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="doQuickPay('${tid}',${month},${year})">💳 Mark as Paid</button>
-  </div>`);
-};
-window.doQuickPay=async function(tid,month,year){
-  const amount=Number(document.getElementById('qpa').value)||0;
-  if(!amount){alert('Amount daalein');return;}
-  await save_('salaries',uid_(),{
-    teacherId:tid,month:Number(month),year:Number(year),
-    amount,status:document.getElementById('qpt').value,
-    paidDate:document.getElementById('qpd').value,
-    remarks:document.getElementById('qpr').value.trim()
-  });
-  closeModal();toast('✅ Payment recorded!');go('teacherDetail',{id:tid});
-};
-
 function salForm(tid,s={}){
   const now=new Date();
   const mo=MN.map((m,i)=>`<option value="${i+1}" ${s.month==i+1?'selected':(!s.month&&i===now.getMonth()?'selected':'')}>${m}</option>`).join('');
@@ -1692,13 +1470,6 @@ function salForm(tid,s={}){
     <div class="fg"><label>Month ★</label><select id="sm">${mo}</select></div>
     <div class="fg"><label>Year ★</label><input type="number" id="sy" value="${s.year||now.getFullYear()}" min="2020" max="2035"></div>
     <div class="fg"><label>Amount ₹ ★</label><input type="number" id="sa" value="${s.amount||''}" placeholder="e.g. 12000"></div>
-    <div class="fg"><label>Payment Type</label>
-      <select id="sst">
-        <option value="paid" ${(s.status||'paid')==='paid'?'selected':''}>✅ Salary Paid</option>
-        <option value="advance" ${s.status==='advance'?'selected':''}>🔼 Advance Payment</option>
-        <option value="partial" ${s.status==='partial'?'selected':''}>⚠️ Partial Payment</option>
-        <option value="unpaid" ${s.status==='unpaid'?'selected':''}>❌ Mark Unpaid</option>
-      </select></div>
     <div class="fg"><label>Date Paid</label><input type="date" id="spd" value="${s.paidDate||now.toISOString().split('T')[0]}"></div>
     <div class="fg fw"><label>Remarks</label><input id="sr" value="${s.remarks||''}" placeholder="Optional"></div>
   </div>
@@ -1717,7 +1488,6 @@ window.saveSal=async function(eid,tid){
   const btn=document.getElementById('salBtn');btn.disabled=true;btn.textContent='💾 Saving...';
   try{
     await save_('salaries',eid||uid_(),{teacherId:tid,month:Number(m),year:Number(y),amount:Number(a),
-      status:document.getElementById('sst').value,
       paidDate:document.getElementById('spd').value,remarks:document.getElementById('sr').value.trim()});
     closeModal();toast('✅ Salary saved!');go('teacherDetail',{id:tid});
   }catch(e){er.style.display='block';er.textContent='❌ '+e.message;btn.disabled=false;btn.textContent='💾 Save';}
@@ -1816,10 +1586,410 @@ window.expCSV=function(){
   const b=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=INST+'_Students.csv';a.click();
 };
 
+// ══════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════
+async function pgSettings(){
+  if(!isDir())return err_('Access Denied');
+  const[settings,users]=await Promise.all([getOne('settings','main'),getAll('users',where('role','==','teacher'))]);
+  return`
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:18px">🏫 Institute Name</div>
+    <div class="fg" style="max-width:420px"><label>School Name</label>
+      <input id="stName" value="${settings?.institute_name||INST}" placeholder="e.g. Wasi Teaching Center"></div>
+    <button class="btn btn-primary btn-sm" onclick="saveInst()">💾 Save</button>
+    <span id="instMsg" style="margin-left:12px"></span>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:18px">🔑 Change My Password</div>
+    <div class="fgrid" style="max-width:500px">
+      <div class="fg"><label>New Password</label><input type="password" id="np" placeholder="Min 6 characters"></div>
+      <div class="fg"><label>Confirm</label><input type="password" id="cp" placeholder="Repeat"></div>
+    </div>
+    <div id="pMsg" class="alert" style="display:none;max-width:460px;margin-bottom:12px"></div>
+    <button class="btn btn-primary btn-sm" onclick="chgPass()">🔒 Update Password</button>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title">👥 Teacher Accounts</div></div>
+    <div class="alert a-info" style="margin-bottom:12px">Default teacher password: <strong>teacher@123</strong></div>
+    <div class="tw"><table>
+      <thead><tr><th>Name</th><th>Login Email</th></tr></thead>
+      <tbody>${users.map(u=>`<tr><td><strong>${u.name}</strong></td><td>${u.email||'-'}</td></tr>`).join('')
+        ||'<tr><td colspan="2" style="text-align:center;color:var(--muted)">No teacher accounts</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+}
+window.saveInst=async function(){
+  const n=document.getElementById('stName').value.trim();if(!n){alert('Name daalein');return;}
+  await save_('settings','main',{institute_name:n});INST=n;
+  document.getElementById('sbName').textContent='🏫 '+n;
+  document.getElementById('loginName').textContent=n;
+  document.getElementById('instMsg').innerHTML='<span class="badge b-green">✅ Saved!</span>';
+  setTimeout(()=>{const el=document.getElementById('instMsg');if(el)el.innerHTML='';},3000);
+};
+window.chgPass=async function(){
+  const np=document.getElementById('np').value,cp=document.getElementById('cp').value;
+  const msg=document.getElementById('pMsg');
+  if(!np||np.length<6){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ Min 6 characters!';return;}
+  if(np!==cp){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ Passwords match nahi!';return;}
+  try{await updatePassword(auth.currentUser,np);msg.className='alert a-success';msg.style.display='block';msg.textContent='✅ Password updated!';}
+  catch(e){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ '+e.message;}
+};
 
-// ══════════════════════════════════════════════
-//  FEE EXPORT — Due / Advance (Director Only)
-// ══════════════════════════════════════════════
+
+/* ===== PATCHED ADDITIONS FROM INDEX 1 ===== */
+const __patchStyle=document.createElement('style');
+__patchStyle.textContent=`
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:flex-end}
+.filter-row .fg{margin-bottom:0;min-width:140px}
+.perm-tag{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e8eaf6;color:#1a237e;margin:3px}
+.perm-tag .rm{cursor:pointer;color:#c62828;margin-left:4px}
+.sal-row-paid{background:#f0fff4!important}
+.sal-row-unpaid{background:#fff5f5!important}
+.sal-row-adv{background:#fffbeb!important}
+.sal-status{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.ss-paid{background:#e8f5e9;color:#2e7d32}
+.ss-unpaid{background:#ffebee;color:#c62828}
+.ss-advance{background:#fff8e1;color:#c17900}
+.ss-partial{background:#fff3e0;color:#e65100}
+.role-op .dir-only{display:none!important}
+`;
+document.head.appendChild(__patchStyle);
+
+const __cache={};
+const __cacheTime={};
+const CACHE_TTL=30000;
+async function getAllCached(c,...cons){
+  if(!cons.length){
+    const now=Date.now();
+    if(__cache[c] && (now-(__cacheTime[c]||0))<CACHE_TTL) return __cache[c];
+    const res=await getAll(c,...cons);
+    __cache[c]=res;__cacheTime[c]=now;
+    return res;
+  }
+  return getAll(c,...cons);
+}
+function clearCache(c){delete __cache[c];delete __cacheTime[c];}
+
+function isOp(){return ROLE==='operator';}
+function isDirOrOp(){return isDir()||isOp();}
+function opCanDelete(s){
+  if(isDir())return true;
+  if(!isOp())return false;
+  const perms=window.__opPerms||[];
+  return perms.some(p=>{
+    if(p.type==='class')return clsL(s.class,s.customClass)===p.value;
+    if(p.type==='rollRange'&&s.rollNumber){
+      const roll=Number(s.rollNumber);
+      return roll>=p.from&&roll<=p.to;
+    }
+    return false;
+  });
+}
+async function loadOpPerms(){
+  const st=await getOne('settings','main');
+  return st?.operatorDeletePerms||[];
+}
+
+function ensureFeeNav(){
+  if(document.getElementById('n-fee-export'))return;
+  const reports=document.querySelector(".nav-item[onclick*=\"go('reports')\"]");
+  if(!reports)return;
+  const sec=document.createElement('div');
+  sec.className='nav-sec';
+  sec.id='ns-fee-export';
+  sec.textContent='Fee Export';
+  const item=document.createElement('div');
+  item.className='nav-item';
+  item.id='n-fee-export';
+  item.innerHTML='<span class="ni">📊</span> Due/Advance Export';
+  item.onclick=()=>go('feeExport');
+  reports.parentElement.insertBefore(sec,reports);
+  reports.parentElement.insertBefore(item,reports);
+}
+
+function showApp(){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('sbName').textContent='🏫 '+INST;
+  const roleLabel=isDir()?'👑 Director':isOp()?'📝 Operator':'👩‍🏫 '+(UDATA?.name||'Teacher');
+  document.getElementById('sbRole').textContent=roleLabel;
+  document.getElementById('tbUser').textContent=UDATA?.name||CU.email;
+  document.getElementById('loginName').textContent=INST;
+  ensureFeeNav();
+  if(isOp()){
+    getOne('settings','main').then(st=>{window.__opPerms=st?.operatorDeletePerms||[];});
+  }
+  const dirOnly=['n-teachers','ns-teacher','n-settings','ns-settings','ns-fee-export','n-fee-export'];
+  const dirAndOp=['n-bulkup','n-comp','ns-comp'];
+  dirOnly.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isDir()?'':'none';});
+  dirAndOp.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=isDirOrOp()?'':'none';});
+  go('dashboard');
+}
+
+window.go=async function(page,params={}){
+  closeSb();PAGE=page;PARAMS=params;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const nav=document.querySelector(`.nav-item[onclick*=\"'${page}'\"]`);
+  if(nav)nav.classList.add('active');
+  document.getElementById('pgTitle').textContent=page==='feeExport'?'Due / Advance Export':(TITLES[page]||page);
+  setH('pageContent',spin_());
+  try{
+    let html='';
+    if(page==='dashboard')html=await pgDash();
+    else if(page==='students')html=await pgStudents();
+    else if(page==='hostel')html=await pgHostel();
+    else if(page==='teachers')html=await pgTeachers();
+    else if(page==='reports')html=await pgReports();
+    else if(page==='settings')html=await pgSettings();
+    else if(page==='studentDetail')html=await pgStudentDetail(params.id);
+    else if(page==='teacherDetail')html=await pgTeacherDetail(params.id);
+    else if(page==='bulkUpload')html=pgBulkUpload();
+    else if(page==='competition')html=await pgCompetition();
+    else if(page==='feeExport')html=await pgFeeExport();
+    setH('pageContent',html);
+  }catch(e){setH('pageContent',err_(e.message||'Page load error'));console.error(e);}
+  window.scrollTo(0,0);
+};
+
+async function pgStudents(){
+  const sts=await getAll('students');
+  window.__sts=sts;
+  return`
+  <div style="display:flex;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px" class="no-print">
+    ${isDirOrOp()?`<div style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="addStuModal()">➕ Add Student</button>
+      <button class="btn btn-accent" onclick="go('bulkUpload')">📤 Bulk Upload</button>
+    </div>`:'<div></div>'}
+  </div>
+  <div class="search-bar">
+    <input type="text" id="sq" placeholder="🔍 Name / Mobile / Roll No..." oninput="filterStu()">
+    <select id="fcls" onchange="filterStu()">
+      <option value="">All Classes</option>
+      ${[1,2,3,4,5,6,7,8,9,10,11,12].map(i=>`<option value="Class ${i}">Class ${i}</option>`).join('')}
+      <option value="Other">Other</option>
+    </select>
+    <select id="ftype" onchange="filterStu()">
+      <option value="">All Types</option>
+      <option value="hostel">🏠 Hostel</option>
+      <option value="dayscholar">🚶 Day Scholar</option>
+    </select>
+  </div>
+  <div class="card"><div id="stTable">${stuTable(sts)}</div></div>`;
+}
+
+function stuTable(sts){
+  if(!sts.length)return`<div class="empty"><div class="ei">🎓</div><p>कोई छात्र नहीं</p></div>`;
+  return`<div class="tw"><table>
+    <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Mobile</th><th>Roll No.</th><th>Type</th><th>Action</th></tr></thead>
+    <tbody>${sts.map((s,i)=>`<tr>
+      <td>${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:9px">
+        ${avH(s.name)}
+        <div><div style="font-weight:700">${s.name}</div>
+        <div style="font-size:11px;color:var(--muted)">${[s.village,s.city].filter(Boolean).join(', ')||''}</div></div>
+      </div></td>
+      <td><span class="badge b-blue">${clsL(s.class,s.customClass)}</span></td>
+      <td>${s.mobile||'-'}</td>
+      <td>${s.rollNumber?`<span class="badge b-gold">${s.rollNumber}</span>`:'-'}</td>
+      <td><span class="badge ${s.type==='hostel'?'b-ora':'b-green'}">${s.type==='hostel'?'🏠 Hostel':'🚶 Day Scholar'}</span></td>
+      <td><div style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-primary" onclick="go('studentDetail',{id:'${s.id}'})">👁</button>
+        ${isDirOrOp()?`<button class="btn btn-sm btn-outline" onclick="editStuModal('${s.id}')">✏️</button>`:''}
+        ${isDir()?`<button class="btn btn-sm btn-danger" onclick="delStu('${s.id}')">🗑</button>`:isOp()&&opCanDelete(s)?`<button class="btn btn-sm btn-danger" onclick="delStu('${s.id}')">🗑</button>`:''}
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+window.delStu=async function(id){
+  const s=await getOne('students',id);
+  if(isOp()&&!opCanDelete(s)){toast('❌ No permission to delete this student','err');return;}
+  if(!confirm('Delete this student? (All fee records will also be deleted)'))return;
+  try{
+    await del_('students',id);
+    const fes=await getAll('fees',where('studentId','==',id));
+    await Promise.all(fes.map(f=>del_('fees',f.id)));
+    clearCache('students');clearCache('fees');toast('Deleted!','info');go('students');
+  }catch(e){toast('Error: '+e.message,'err');}
+};
+
+async function pgCompetition(){
+  if(!isDirOrOp())return err_('Access Denied');
+  const exams=await getAll('competitions');
+  return`
+  <div style="display:flex;justify-content:flex-end;margin-bottom:16px" class="no-print">
+    ${isDir()?`<button class="btn btn-primary" onclick="addExamModal()">➕ Add Competition Exam</button>`:''}
+  </div>
+  ${!exams.length?`<div class="card"><div class="empty"><div class="ei">🏆</div><p>कोई Competition Exam नहीं। Add करें।</p></div></div>`:
+  `<div style="display:grid;gap:16px">
+    ${exams.map(ex=>`
+    <div class="card">
+      <div class="card-hd">
+        <div>
+          <div class="card-title">🏆 ${ex.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">${ex.date||''} ${ex.description?'• '+ex.description:''}</div>
+        </div>
+        <div style="display:flex;gap:8px" class="no-print">
+          <button class="btn btn-sm btn-primary" onclick="viewExamResults('${ex.id}')">📊 Results</button>
+          ${isDirOrOp()?`<button class="btn btn-sm btn-accent" onclick="addResultModal('${ex.id}')">➕ Add Result</button>`:''}
+          ${isDir()?`<button class="btn btn-sm btn-danger" onclick="delExam('${ex.id}')">🗑</button>`:''}
+        </div>
+      </div>
+      <div id="exam-summary-${ex.id}" class="exam-summary"></div>
+    </div>`).join('')}
+  </div>`}`;
+}
+
+async function pgSettings(){
+  if(!isDir())return err_('Access Denied');
+  const [settings,allUsers]=await Promise.all([getOne('settings','main'),getAll('users')]);
+  const teachers=allUsers.filter(u=>u.role==='teacher');
+  const operators=allUsers.filter(u=>u.role==='operator');
+  const opPerms=settings?.operatorDeletePerms||[];
+  return`
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:18px">🏫 Institute Name</div>
+    <div class="fg" style="max-width:420px"><label>School Name</label>
+      <input id="stName" value="${settings?.institute_name||INST}" placeholder="e.g. Wasi Teaching Center"></div>
+    <button class="btn btn-primary btn-sm" onclick="saveInst()">💾 Save</button>
+    <span id="instMsg" style="margin-left:12px"></span>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title" style="margin-bottom:18px">🔑 Change My Password</div>
+    <div class="fgrid" style="max-width:500px">
+      <div class="fg"><label>New Password</label><input type="password" id="np" placeholder="Min 6 characters"></div>
+      <div class="fg"><label>Confirm</label><input type="password" id="cp" placeholder="Repeat"></div>
+    </div>
+    <div id="pMsg" class="alert" style="display:none;max-width:460px;margin-bottom:12px"></div>
+    <button class="btn btn-primary btn-sm" onclick="chgPass()">🔒 Update Password</button>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-hd"><div class="card-title">👩‍🏫 Teacher Accounts</div></div>
+    <div class="alert a-info" style="margin-bottom:12px">Default password: <strong>teacher@123</strong></div>
+    <div class="tw"><table>
+      <thead><tr><th>Name</th><th>Login Email</th></tr></thead>
+      <tbody>${teachers.map(u=>`<tr><td><strong>${u.name}</strong></td><td>${u.email||'-'}</td></tr>`).join('')||'<tr><td colspan="2" style="text-align:center;color:var(--muted)">No teacher accounts</td></tr>'}</tbody>
+    </table></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-hd">
+      <div class="card-title">📝 Data Entry Operators</div>
+      <button class="btn btn-sm btn-primary" onclick="addOperatorModal()">➕ Add Operator</button>
+    </div>
+    <div class="alert a-info" style="margin-bottom:12px">
+      Operator can: Add students, Edit student data, Add/Edit competition results.<br>
+      Operator CANNOT: See fees, Delete students (unless permitted below).
+    </div>
+    ${!operators.length?`<p style="color:var(--muted)">No operators yet.</p>`:
+    `<div class="tw"><table>
+      <thead><tr><th>Name</th><th>Email</th><th>Action</th></tr></thead>
+      <tbody>${operators.map(u=>`<tr>
+        <td><strong>${u.name}</strong></td><td>${u.email||'-'}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">🗑 Remove</button></td>
+      </tr>`).join('')}</tbody>
+    </table></div>`}
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title">🔐 Operator Delete Permissions</div></div>
+    <div class="alert a-warn" style="margin-bottom:14px">
+      यहाँ आप Operator को specific class या roll number range के students delete करने की permission दे सकते हैं.
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <div style="flex:1;min-width:200px">
+        <div class="fg" style="margin-bottom:8px"><label>By Class</label>
+          <select id="permClass">
+            <option value="">-- Select Class --</option>
+            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(i=>`<option value="Class ${i}">Class ${i}</option>`).join('')}
+            <option value="Other">Other</option>
+          </select></div>
+        <button class="btn btn-sm btn-primary" onclick="addPermClass()">➕ Allow This Class</button>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="fg" style="margin-bottom:4px"><label>By Roll Number Range</label>
+          <div style="display:flex;gap:6px">
+            <input type="number" id="permRollFrom" placeholder="From Roll" style="padding:8px;border:2px solid var(--border);border-radius:8px;font-size:13px;flex:1">
+            <input type="number" id="permRollTo" placeholder="To Roll" style="padding:8px;border:2px solid var(--border);border-radius:8px;font-size:13px;flex:1">
+          </div></div>
+        <button class="btn btn-sm btn-primary" onclick="addPermRoll()">➕ Allow This Range</button>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <strong style="font-size:13px">Current Permissions:</strong>
+      <div id="permTags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
+        ${opPerms.map((p,i)=>`<span class="perm-tag">${p.type==='class'?'📚 '+p.value:`🔢 Roll ${p.from}–${p.to}`}<span class="rm" onclick="removePerm(${i})">✕</span></span>`).join('')||'<span style="color:var(--muted);font-size:13px">No permissions set</span>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+window.addOperatorModal=function(){
+  openModal('➕ Add Data Entry Operator',`
+  <div class="fgrid">
+    <div class="fg fw"><label>Full Name ★</label><input id="opn" placeholder="Operator\'s name"></div>
+    <div class="fg"><label>Email ★</label><input type="email" id="ope" placeholder="operator@email.com"></div>
+    <div class="fg"><label>Password ★</label><input type="password" id="opp" value="operator@123" placeholder="Min 6 chars"></div>
+  </div>
+  <div id="opErr" class="alert a-danger" style="display:none"></div>
+  <div class="form-actions">
+    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveOperator()">💾 Add Operator</button>
+  </div>`);
+};
+
+window.saveOperator=async function(){
+  const name=document.getElementById('opn').value.trim();
+  const email=document.getElementById('ope').value.trim();
+  const pass=document.getElementById('opp').value;
+  const er=document.getElementById('opErr');
+  if(!name||!email||!pass){er.style.display='block';er.textContent='❌ All fields required!';return;}
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await save_('users',cred.user.uid,{name,email,role:'operator'});
+    closeModal();toast('✅ Operator added! Email: '+email+' | Pass: '+pass);go('settings');
+  }catch(e){er.style.display='block';er.textContent='❌ '+e.message;}
+};
+
+window.deleteUser=async function(uid){
+  if(!confirm('Remove this user account?'))return;
+  await del_('users',uid);toast('Removed!','info');go('settings');
+};
+
+window.addPermClass=async function(){
+  const cls=document.getElementById('permClass').value;
+  if(!cls){alert('Class select karein');return;}
+  const perms=await loadOpPerms();
+  if(perms.some(p=>p.type==='class'&&p.value===cls)){alert('Already added!');return;}
+  perms.push({type:'class',value:cls});
+  await save_('settings','main',{operatorDeletePerms:perms});
+  window.__opPerms=perms;toast('✅ Permission added!');go('settings');
+};
+window.addPermRoll=async function(){
+  const from=Number(document.getElementById('permRollFrom').value);
+  const to=Number(document.getElementById('permRollTo').value);
+  if(!from||!to||from>to){alert('Valid roll number range daalein');return;}
+  const perms=await loadOpPerms();
+  perms.push({type:'rollRange',from,to});
+  await save_('settings','main',{operatorDeletePerms:perms});
+  window.__opPerms=perms;toast('✅ Permission added!');go('settings');
+};
+window.removePerm=async function(idx){
+  const perms=await loadOpPerms();
+  perms.splice(idx,1);
+  await save_('settings','main',{operatorDeletePerms:perms});
+  window.__opPerms=perms;toast('Permission removed!','info');go('settings');
+};
+
+window.saveInst=async function(){
+  const n=document.getElementById('stName').value.trim();if(!n){alert('Name daalein');return;}
+  await save_('settings','main',{institute_name:n});INST=n;
+  sessionStorage.setItem('inst',n);
+  document.getElementById('sbName').textContent='🏫 '+n;
+  document.getElementById('loginName').textContent=n;
+  const msg=document.getElementById('instMsg');
+  if(msg){msg.innerHTML='<span class="badge b-green">✅ Saved!</span>';setTimeout(()=>{if(msg)msg.innerHTML='';},3000);}
+};
+
 async function pgFeeExport(){
   if(!isDir())return err_('Access Denied');
   const now=new Date();
@@ -1827,11 +1997,9 @@ async function pgFeeExport(){
   <div class="card" style="margin-bottom:20px">
     <div class="card-hd"><div class="card-title">📊 Export Due / Advance Students</div></div>
     <div class="alert a-info" style="margin-bottom:16px">
-      इस page से Due या Advance fee वाले students का Excel export कर सकते हैं।<br>
-      Next year इसी file को import करके previous year का due/advance automatically carry forward होगा।
+      इस page से Due या Advance fee वाले students का Excel export कर सकते हैं.<br>
+      Next year इसी file को import करके previous year का due/advance automatically carry forward होगा.
     </div>
-
-    <!-- Filters -->
     <div class="filter-row">
       <div class="fg"><label>Filter Type</label>
         <select id="expType">
@@ -1861,17 +2029,15 @@ async function pgFeeExport(){
       <button class="btn btn-accent" onclick="exportFeeExcel()">📊 Download Excel</button>
     </div>
   </div>
-
   <div id="feeExportPreview"></div>
-
-  <!-- Import Carry Forward -->
   <div class="card" style="margin-top:20px">
     <div class="card-hd"><div class="card-title">📥 Import & Carry Forward (Next Year)</div></div>
     <div class="alert a-warn" style="margin-bottom:14px">
-      ⚠️ पिछले साल export की Excel file upload करें। System automatically Due/Advance carry forward करेगा।
+      ⚠️ पिछले साल export की Excel file upload करें। System automatically Due/Advance carry forward करेगा.
     </div>
     <div class="upload-zone" id="carryZone" onclick="document.getElementById('carryInput').click()"
-      ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')"
+      ondragover="event.preventDefault();this.classList.add('drag')"
+      ondragleave="this.classList.remove('drag')"
       ondrop="handleCarryDrop(event)">
       <div class="ui">📂</div>
       <h3>Carry Forward Excel Drop करें</h3>
@@ -1882,47 +2048,34 @@ async function pgFeeExport(){
   </div>`;
 }
 
-async function calcStudentFee(s,fees,filterYear,filterMonth){
-  const now=new Date(),cm=now.getMonth()+1,cy=now.getFullYear();
-  let sf=fees.filter(f=>f.studentId===s.id);
-  if(filterYear!=='all')sf=sf.filter(f=>f.year==filterYear);
-  if(filterMonth!=='all')sf=sf.filter(f=>f.month==filterMonth);
-  const tp=sf.reduce((a,f)=>a+Number(f.paidAmount||0),0);
-  const year=filterYear==='all'?cy:Number(filterYear);
-  const mc=Math.max(1,(year-s.startYear)*12+(cm-s.startMonth)+1);
-  const td=filterYear==='all'?mc*Number(s.monthlyFee||0):
-    filterMonth!=='all'?Number(s.monthlyFee||0):12*Number(s.monthlyFee||0);
-  const bal=td-tp;
-  return{due:Math.max(0,bal),advance:Math.max(0,-bal),totalPaid:tp,totalDue:td};
-}
-
-window.previewFeeExport=async function(){
-  const[students,fees]=await Promise.all([getAll('students'),getAll('fees')]);
+async function previewFeeExport(){
+  const [students,fees]=await Promise.all([getAll('students'),getAll('fees')]);
   const expType=document.getElementById('expType').value;
   const expYear=document.getElementById('expYear').value;
   const expMonth=document.getElementById('expMonth').value;
   const expClass=document.getElementById('expClass').value;
-
   let filtered=students;
   if(expClass!=='all')filtered=filtered.filter(s=>String(s.class)===expClass);
-
   const rows=[];
+  const now=new Date(),cm=now.getMonth()+1;
   for(const s of filtered){
-    const{due,advance}=await calcStudentFee(s,fees,expYear,expMonth);
+    let sf=fees.filter(f=>f.studentId===s.id);
+    if(expYear!=='all')sf=sf.filter(f=>String(f.year)===String(expYear));
+    if(expMonth!=='all')sf=sf.filter(f=>String(f.month)===String(expMonth));
+    const tp=sf.reduce((a,f)=>a+Number(f.paidAmount||0),0);
+    const year=expYear==='all'?now.getFullYear():Number(expYear);
+    const mc=Math.max(1,(year-s.startYear)*12+(cm-s.startMonth)+1);
+    const td=expYear==='all'?mc*Number(s.monthlyFee||0):(expMonth!=='all'?Number(s.monthlyFee||0):12*Number(s.monthlyFee||0));
+    const due=Math.max(0,td-tp),advance=Math.max(0,tp-td);
     if(expType==='due'&&due<=0)continue;
     if(expType==='advance'&&advance<=0)continue;
     if(expType==='all'&&due<=0&&advance<=0)continue;
     rows.push({...s,due,advance});
   }
-
   window.__feeExportRows=rows;
-  window.__feeExportMeta={expYear,expMonth,expType};
-
+  window.__feeExportMeta={expType,expYear,expMonth};
   const preview=document.getElementById('feeExportPreview');
-  if(!rows.length){
-    preview.innerHTML=`<div class="card"><div class="empty"><div class="ei">✅</div><p>कोई Due/Advance नहीं मिला</p></div></div>`;
-    return;
-  }
+  if(!rows.length){preview.innerHTML=`<div class="card"><div class="empty"><div class="ei">✅</div><p>कोई Due/Advance नहीं मिला</p></div></div>`;return;}
   preview.innerHTML=`
   <div class="card">
     <div class="card-hd">
@@ -1943,31 +2096,23 @@ window.previewFeeExport=async function(){
       </tbody>
     </table></div>
   </div>`;
-};
+}
 
-window.exportFeeExcel=function(){
+function exportFeeExcel(){
   const rows=window.__feeExportRows;
   if(!rows||!rows.length){toast('❌ Pehle Preview karein','err');return;}
   const meta=window.__feeExportMeta||{};
   const mn=meta.expMonth!=='all'?MN[Number(meta.expMonth)-1]:'All';
   const yr=meta.expYear||new Date().getFullYear();
-
-  let csv='Name,Class,Roll Number,Mobile,Father Name,Mother Name,Village,City,Monthly Fee,Start Month,Start Year,Type,Total Due,Advance Amount
-';
+  let csv='Name,Class,Roll Number,Mobile,Father Name,Mother Name,Village,City,Monthly Fee,Start Month,Start Year,Type,Total Due,Advance Amount\n';
   rows.forEach(s=>{
-    csv+=`"${s.name}","${clsL(s.class,s.customClass)}","${s.rollNumber||''}","${s.mobile||''}","${s.fatherName||''}","${s.motherName||''}","${s.village||''}","${s.city||''}","${s.monthlyFee||0}","${MN[(s.startMonth||1)-1]}","${s.startYear||''}","${s.type}","${s.due||0}","${s.advance||0}"
-`;
+    csv+=`"${s.name}","${clsL(s.class,s.customClass)}","${s.rollNumber||''}","${s.mobile||''}","${s.fatherName||''}","${s.motherName||''}","${s.village||''}","${s.city||''}","${s.monthlyFee||0}","${MN[(s.startMonth||1)-1]}","${s.startYear||''}","${s.type}","${s.due||0}","${s.advance||0}"\n`;
   });
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`${INST}_FeeReport_${mn}_${yr}.csv`;a.click();
+  toast('✅ Excel download ho रही है!');
+}
 
-  function dlCSV(csv,fname){
-    const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fname;a.click();
-  }
-  dlCSV(csv,`${INST}_FeeReport_${mn}_${yr}.csv`);
-  toast('✅ Excel download ho rahi hai!');
-};
-
-// Carry Forward Import
 window.handleCarryDrop=function(e){
   e.preventDefault();document.getElementById('carryZone').classList.remove('drag');
   const file=e.dataTransfer.files[0];if(file)processCarryFile(file);
@@ -1981,86 +2126,44 @@ async function processCarryFile(file){
     let rows=[];
     if(file.name.endsWith('.csv')){
       const text=await file.text();
-      rows=text.split(/
-?\n/).filter(l=>l.trim()).map(l=>{
-        const cells=[];let cur='',inQ=false;
-        for(const ch of l){if(ch==='"')inQ=!inQ;else if(ch===','&&!inQ){cells.push(cur.trim());cur='';}else cur+=ch;}
-        cells.push(cur.trim());return cells;
-      });
+      rows=parseCSV(text);
     }else{
-      rows=await parseExcel(file);
+      const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+      const sh=wb.Sheets[wb.SheetNames[0]];
+      rows=XLSX.utils.sheet_to_json(sh,{header:1,defval:''});
     }
-    if(rows.length<2){zone.innerHTML=`<div class="ui">❌</div><h3>No data found</h3>`;return;}
-
+    if(!rows||rows.length<2){zone.innerHTML=`<div class="ui">❌</div><h3>No data found</h3>`;return;}
     const headers=rows[0].map(h=>String(h).toLowerCase().trim());
     const idx={};
-    const needed={name:['name'],roll:['roll number','roll no','roll'],cls:['class'],due:['total due','due'],adv:['advance','advance amount']};
-    Object.entries(needed).forEach(([k,variants])=>{
-      const i=headers.findIndex(h=>variants.some(v=>h.includes(v)));
-      if(i>=0)idx[k]=i;
-    });
-
+    const needed={name:['name'],roll:['roll number','roll no','roll'],due:['total due','due'],adv:['advance','advance amount']};
+    Object.entries(needed).forEach(([k,variants])=>{const i=headers.findIndex(h=>variants.some(v=>h.includes(v)));if(i>=0)idx[k]=i;});
     const preview=[];
     for(let i=1;i<rows.length;i++){
       const row=rows[i];if(!row.some(c=>c))continue;
-      const name=String(row[idx.name]||'').trim();
-      const roll=String(row[idx.roll]||'').trim();
-      const due=Number(String(row[idx.due]||'0').replace(/[^0-9.]/g,''))||0;
-      const adv=Number(String(row[idx.adv]||'0').replace(/[^0-9.]/g,''))||0;
-      if(name||(due>0||adv>0))preview.push({name,roll,due,adv,row:i+1});
+      preview.push({name:String(row[idx.name]||'').trim(),roll:String(row[idx.roll]||'').trim(),due:Number(row[idx.due]||0),adv:Number(row[idx.adv]||0)});
     }
-
     window.__carryData=preview;
-    zone.innerHTML=`<div class="ui">✅</div><h3>${preview.length} records found</h3><p>Click Apply to carry forward</p>`;
-
-    const pr=document.getElementById('carryPreview');
-    pr.innerHTML=`
-    <div class="card">
-      <div class="card-hd"><div class="card-title">Carry Forward Preview</div>
-        <button class="btn btn-primary" onclick="applyCarryForward()">✅ Apply Carry Forward</button>
-      </div>
-      <div class="tw"><table>
-        <thead><tr><th>#</th><th>Name</th><th>Roll</th><th>Previous Due</th><th>Previous Advance</th></tr></thead>
-        <tbody>${preview.map((r,i)=>`<tr>
-          <td>${i+1}</td><td>${r.name}</td><td>${r.roll||'-'}</td>
-          <td>${r.due>0?`<span class="badge b-red">${cur(r.due)}</span>`:'-'}</td>
-          <td>${r.adv>0?`<span class="badge b-green">${cur(r.adv)}</span>`:'-'}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>
-    </div>`;
+    document.getElementById('carryPreview').innerHTML=`
+      <div class="alert a-info">${preview.length} rows ready for carry forward.</div>
+      <button class="btn btn-primary" onclick="applyCarryForward()">✅ Apply Carry Forward</button>`;
+    zone.innerHTML=`<div class="ui">✅</div><h3>File Ready</h3><p>${preview.length} rows processed</p>`;
   }catch(e){zone.innerHTML=`<div class="ui">❌</div><h3>Error: ${e.message}</h3>`;}
 }
 
 window.applyCarryForward=async function(){
-  const data=window.__carryData;if(!data?.length){return;}
-  if(!confirm(`${data.length} students ka data carry forward karein? Ye fees add ho jayengi.`))return;
-
+  const data=window.__carryData;if(!data?.length)return;
+  if(!confirm(`${data.length} students ka data carry forward karein?`))return;
   const students=await getAll('students');
   const now=new Date();let done=0,notFound=0;
-
   for(const r of data){
-    // Find student by name or roll number
-    let stu=students.find(s=>s.rollNumber&&s.rollNumber===r.roll);
+    let stu=students.find(s=>s.rollNumber&&String(s.rollNumber)===String(r.roll));
     if(!stu)stu=students.find(s=>s.name.toLowerCase()===r.name.toLowerCase());
     if(!stu){notFound++;continue;}
-
-    // Add carry forward fee entry for current year Jan
     if(r.due>0){
-      await save_('fees',uid_(),{
-        studentId:stu.id,month:1,year:now.getFullYear(),
-        dueAmount:r.due,paidAmount:0,
-        payMode:'CarryForward',remarks:`Previous Year Due Carry Forward`,
-        isCarryForward:true
-      });
+      await save_('fees',uid_(),{studentId:stu.id,month:1,year:now.getFullYear(),dueAmount:r.due,paidAmount:0,payMode:'CarryForward',remarks:'Previous Year Due Carry Forward',isCarryForward:true});
     }
     if(r.adv>0){
-      // Record advance credit
-      await save_('fees',uid_(),{
-        studentId:stu.id,month:1,year:now.getFullYear(),
-        dueAmount:0,paidAmount:r.adv,
-        payMode:'CarryForward',remarks:`Previous Year Advance Carry Forward`,
-        isCarryForward:true
-      });
+      await save_('fees',uid_(),{studentId:stu.id,month:1,year:now.getFullYear(),dueAmount:0,paidAmount:r.adv,payMode:'CarryForward',remarks:'Previous Year Advance Carry Forward',isCarryForward:true});
     }
     done++;
   }
@@ -2069,180 +2172,6 @@ window.applyCarryForward=async function(){
   go('feeExport');
 };
 
-// ══════════════════════════════════════════════
-//  SETTINGS
-// ══════════════════════════════════════════════
-async function pgSettings(){
-  if(!isDir())return err_('Access Denied');
-  const[settings,allUsers]=await Promise.all([getOne('settings','main'),getAll('users')]);
-  const teachers=allUsers.filter(u=>u.role==='teacher');
-  const operators=allUsers.filter(u=>u.role==='operator');
-  const opPerms=settings?.operatorDeletePerms||[];
-  return`
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-title" style="margin-bottom:18px">🏫 Institute Name</div>
-    <div class="fg" style="max-width:420px"><label>School Name</label>
-      <input id="stName" value="${settings?.institute_name||INST}" placeholder="e.g. Wasi Teaching Center"></div>
-    <button class="btn btn-primary btn-sm" onclick="saveInst()">💾 Save</button>
-    <span id="instMsg" style="margin-left:12px"></span>
-  </div>
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-title" style="margin-bottom:18px">🔑 Change My Password</div>
-    <div class="fgrid" style="max-width:500px">
-      <div class="fg"><label>New Password</label><input type="password" id="np" placeholder="Min 6 characters"></div>
-      <div class="fg"><label>Confirm</label><input type="password" id="cp" placeholder="Repeat"></div>
-    </div>
-    <div id="pMsg" class="alert" style="display:none;max-width:460px;margin-bottom:12px"></div>
-    <button class="btn btn-primary btn-sm" onclick="chgPass()">🔒 Update Password</button>
-  </div>
-
-  <!-- Teacher Accounts -->
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-hd"><div class="card-title">👩‍🏫 Teacher Accounts</div></div>
-    <div class="alert a-info" style="margin-bottom:12px">Default password: <strong>teacher@123</strong></div>
-    <div class="tw"><table>
-      <thead><tr><th>Name</th><th>Login Email</th></tr></thead>
-      <tbody>${teachers.map(u=>`<tr><td><strong>${u.name}</strong></td><td>${u.email||'-'}</td></tr>`).join('')
-        ||'<tr><td colspan="2" style="text-align:center;color:var(--muted)">No teacher accounts</td></tr>'}</tbody>
-    </table></div>
-  </div>
-
-  <!-- Operator Accounts -->
-  <div class="card" style="margin-bottom:20px">
-    <div class="card-hd">
-      <div class="card-title">📝 Data Entry Operators</div>
-      <button class="btn btn-sm btn-primary" onclick="addOperatorModal()">➕ Add Operator</button>
-    </div>
-    <div class="alert a-info" style="margin-bottom:12px">
-      Operator can: Add students, Edit student data, Add/Edit competition results.<br>
-      Operator CANNOT: See fees, Delete students (unless permitted below).
-    </div>
-    ${!operators.length?`<p style="color:var(--muted)">No operators yet.</p>`:
-    `<div class="tw"><table>
-      <thead><tr><th>Name</th><th>Email</th><th>Action</th></tr></thead>
-      <tbody>${operators.map(u=>`<tr>
-        <td><strong>${u.name}</strong></td><td>${u.email||'-'}</td>
-        <td><button class="btn btn-sm btn-danger" onclick="deleteUser('${u.id}')">🗑 Remove</button></td>
-      </tr>`).join('')}</tbody>
-    </table></div>`}
-  </div>
-
-  <!-- Operator Delete Permissions -->
-  <div class="card">
-    <div class="card-hd">
-      <div class="card-title">🔐 Operator Delete Permissions</div>
-    </div>
-    <div class="alert a-warn" style="margin-bottom:14px">
-      यहाँ आप Operator को specific class या roll number range के students delete करने की permission दे सकते हैं।
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-      <div style="flex:1;min-width:200px">
-        <div class="fg" style="margin-bottom:8px"><label>By Class</label>
-          <select id="permClass">
-            <option value="">-- Select Class --</option>
-            ${[1,2,3,4,5,6,7,8,9,10,11,12].map(i=>`<option value="Class ${i}">Class ${i}</option>`).join('')}
-            <option value="Other">Other</option>
-          </select></div>
-        <button class="btn btn-sm btn-primary" onclick="addPermClass()">➕ Allow This Class</button>
-      </div>
-      <div style="flex:1;min-width:200px">
-        <div class="fg" style="margin-bottom:4px"><label>By Roll Number Range</label>
-          <div style="display:flex;gap:6px">
-            <input type="number" id="permRollFrom" placeholder="From Roll" style="padding:8px;border:2px solid var(--border);border-radius:8px;font-size:13px;flex:1">
-            <input type="number" id="permRollTo" placeholder="To Roll" style="padding:8px;border:2px solid var(--border);border-radius:8px;font-size:13px;flex:1">
-          </div></div>
-        <button class="btn btn-sm btn-primary" onclick="addPermRoll()">➕ Allow This Range</button>
-      </div>
-    </div>
-    <div style="margin-bottom:10px">
-      <strong style="font-size:13px">Current Permissions:</strong>
-      <div id="permTags" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">
-        ${opPerms.map((p,i)=>`<span class="perm-tag">
-          ${p.type==='class'?'📚 '+p.value:`🔢 Roll ${p.from}–${p.to}`}
-          <span class="rm" onclick="removePerm(${i})">✕</span>
-        </span>`).join('')||'<span style="color:var(--muted);font-size:13px">No permissions set</span>'}
-      </div>
-    </div>
-  </div>`;
-}
-
-window.addOperatorModal=function(){
-  openModal('➕ Add Data Entry Operator',`
-  <div class="fgrid">
-    <div class="fg fw"><label>Full Name ★</label><input id="opn" placeholder="Operator's name"></div>
-    <div class="fg"><label>Email ★</label><input type="email" id="ope" placeholder="operator@email.com"></div>
-    <div class="fg"><label>Password ★</label><input type="password" id="opp" value="operator@123" placeholder="Min 6 chars"></div>
-  </div>
-  <div id="opErr" class="alert a-danger" style="display:none"></div>
-  <div class="form-actions">
-    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
-    <button class="btn btn-primary" onclick="saveOperator()">💾 Add Operator</button>
-  </div>`);
-};
-
-window.saveOperator=async function(){
-  const name=document.getElementById('opn').value.trim();
-  const email=document.getElementById('ope').value.trim();
-  const pass=document.getElementById('opp').value;
-  const er=document.getElementById('opErr');
-  if(!name||!email||!pass){er.style.display='block';er.textContent='❌ All fields required!';return;}
-  try{
-    const cred=await createUserWithEmailAndPassword(auth,email,pass);
-    await save_('users',cred.user.uid,{name,email,role:'operator'});
-    closeModal();toast('✅ Operator added! Email: '+email+' | Pass: '+pass);go('settings');
-  }catch(e){er.style.display='block';er.textContent='❌ '+e.message;}
-};
-
-window.deleteUser=async function(uid){
-  if(!confirm('Remove this user account?'))return;
-  await del_('users',uid);toast('Removed!','info');go('settings');
-};
-
-// Permission management
-async function loadOpPerms(){
-  const st=await getOne('settings','main');return st?.operatorDeletePerms||[];
-}
-window.addPermClass=async function(){
-  const cls=document.getElementById('permClass').value;
-  if(!cls){alert('Class select karein');return;}
-  const perms=await loadOpPerms();
-  if(perms.some(p=>p.type==='class'&&p.value===cls)){alert('Already added!');return;}
-  perms.push({type:'class',value:cls});
-  await save_('settings','main',{operatorDeletePerms:perms});
-  window.__opPerms=perms;toast('✅ Permission added!');go('settings');
-};
-window.addPermRoll=async function(){
-  const from=Number(document.getElementById('permRollFrom').value);
-  const to=Number(document.getElementById('permRollTo').value);
-  if(!from||!to||from>to){alert('Valid roll number range daalein');return;}
-  const perms=await loadOpPerms();
-  perms.push({type:'rollRange',from,to});
-  await save_('settings','main',{operatorDeletePerms:perms});
-  window.__opPerms=perms;toast('✅ Permission added!');go('settings');
-};
-window.removePerm=async function(idx){
-  const perms=await loadOpPerms();
-  perms.splice(idx,1);
-  await save_('settings','main',{operatorDeletePerms:perms});
-  window.__opPerms=perms;toast('Permission removed!','info');go('settings');
-};
-window.saveInst=async function(){
-  const n=document.getElementById('stName').value.trim();if(!n){alert('Name daalein');return;}
-  await save_('settings','main',{institute_name:n});INST=n;
-  sessionStorage.setItem('inst',n);
-  document.getElementById('sbName').textContent='🏫 '+n;
-  document.getElementById('loginName').textContent=n;
-  document.getElementById('instMsg').innerHTML='<span class="badge b-green">✅ Saved!</span>';
-  setTimeout(()=>{const el=document.getElementById('instMsg');if(el)el.innerHTML='';},3000);
-};
-window.chgPass=async function(){
-  const np=document.getElementById('np').value,cp=document.getElementById('cp').value;
-  const msg=document.getElementById('pMsg');
-  if(!np||np.length<6){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ Min 6 characters!';return;}
-  if(np!==cp){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ Passwords match nahi!';return;}
-  try{await updatePassword(auth.currentUser,np);msg.className='alert a-success';msg.style.display='block';msg.textContent='✅ Password updated!';}
-  catch(e){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ '+e.message;}
-};
 </script>
 </body>
 </html>
