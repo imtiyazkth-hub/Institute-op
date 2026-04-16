@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>School Management System — Login</title>
 <meta name="theme-color" content="#1a237e">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -190,10 +190,8 @@ tbody tr:hover{background:#f6f8ff}
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getFirestore,doc,getDoc}
-  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}
-  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig={
   apiKey:"AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",
@@ -208,8 +206,19 @@ const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const auth=getAuth(fbApp);
 
-// If already logged in — redirect to correct dashboard
-onAuthStateChanged(auth,async user=>{
+// Load school name
+async function loadSchoolName(){
+  try{
+    const s=await getDoc(doc(db,'settings','main'));
+    if(s.exists()&&s.data().institute_name){
+      document.getElementById('loginName').textContent=s.data().institute_name;
+    }
+  }catch(e){}
+}
+loadSchoolName();
+
+// If already logged in, redirect to correct dashboard
+onAuthStateChanged(auth,async function(user){
   if(user){
     try{
       const snap=await getDoc(doc(db,'users',user.uid));
@@ -219,8 +228,6 @@ onAuthStateChanged(auth,async user=>{
         if(role==='director')       window.location.href='director.html';
         else if(role==='operator')  window.location.href='operator.html';
         else                        window.location.href='teacher.html';
-      }else{
-        await signOut(auth);
       }
     }catch(e){console.error(e);}
   }
