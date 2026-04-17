@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Director Dashboard — School Management</title>
 <meta name="theme-color" content="#1a237e">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -172,23 +172,23 @@ tbody tr:hover{background:#f6f8ff}
     <div class="sb-role" id="sbRole">👑 Director</div>
   </div>
   <nav class="sb-nav">
-    <div class="nav-sec">मुख्य</div>
-    <div class="nav-item" onclick="go('dashboard')"><span class="ni">📊</span> Dashboard</div>
-    <div class="nav-sec">छात्र</div>
-    <div class="nav-item" onclick="go('students')"><span class="ni">🎓</span> All Students</div>
-    <div class="nav-item" onclick="go('hostel')"><span class="ni">🏠</span> Hostel</div>
-    <div class="nav-item" onclick="go('bulkUpload')"><span class="ni">📤</span> Bulk Upload</div>
-    <div class="nav-sec">शिक्षक</div>
-    <div class="nav-item" onclick="go('teachers')"><span class="ni">👩‍🏫</span> All Teachers</div>
-    <div class="nav-sec">प्रतियोगिता</div>
-    <div class="nav-item" onclick="go('competition')"><span class="ni">🏆</span> Competition</div>
-    <div class="nav-sec">रिपोर्ट</div>
-    <div class="nav-item" onclick="go('reports')"><span class="ni">📋</span> Reports</div>
-    <div class="nav-sec">सेटिंग</div>
-    <div class="nav-item" onclick="go('settings')"><span class="ni">⚙️</span> Settings</div>
-  </nav>
+  <div class="nav-sec">मुख्य</div>
+  <div class="nav-item active" onclick="go('dashboard')"><span class="ni">📊</span> Dashboard</div>
+  <div class="nav-sec">छात्र</div>
+  <div class="nav-item" onclick="go('students')"><span class="ni">🎓</span> All Students</div>
+  <div class="nav-item" onclick="go('hostel')"><span class="ni">🏠</span> Hostel</div>
+  <div class="nav-item" onclick="go('bulkUpload')"><span class="ni">📤</span> Bulk Upload</div>
+  <div class="nav-sec">शिक्षक</div>
+  <div class="nav-item" onclick="go('teachers')"><span class="ni">👩‍🏫</span> All Teachers</div>
+  <div class="nav-sec">प्रतियोगिता</div>
+  <div class="nav-item" onclick="go('competition')"><span class="ni">🏆</span> Competition</div>
+  <div class="nav-sec">रिपोर्ट</div>
+  <div class="nav-item" onclick="go('reports')"><span class="ni">📋</span> Reports</div>
+  <div class="nav-sec">सेटिंग</div>
+  <div class="nav-item" onclick="go('settings')"><span class="ni">⚙️</span> Settings</div>
+</nav>
   <div class="sb-foot">
-    <div class="nav-item" onclick="doLogout()"><span class="ni">🚪</span> Logout</div>
+    <div class="nav-item" onclick="doLogout()" style="border-radius:10px"><span class="ni">🚪</span> Logout</div>
   </div>
 </aside>
 <main class="main">
@@ -199,35 +199,34 @@ tbody tr:hover{background:#f6f8ff}
     </div>
     <span style="font-size:12px;color:var(--muted)" id="tbUser"></span>
   </div>
-  <div class="page" id="pageContent">
-    <div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>
-  </div>
+  <div class="page" id="pageContent"><div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div></div>
 </main>
 <div id="modalWrap" class="modal-wrap" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-hd"><div class="modal-title" id="modalTitle"></div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div id="modalBody"></div>
   </div>
 </div>
 <script type="module">
+
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,updatePassword,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp}
+  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,updatePassword,createUserWithEmailAndPassword}
+  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 // ══ FIREBASE CONFIG ══
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",
-  authDomain: "institute-op.firebaseapp.com",
-  projectId: "institute-op",
-  storageBucket: "institute-op.firebasestorage.app",
-  messagingSenderId: "218000499296",
-  appId: "1:218000499296:web:e53291c1f26574ff4e1905",
-  measurementId: "G-10Z23ELHTD"
+const firebaseConfig={
+  apiKey:"AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",
+  authDomain:"institute-op.firebaseapp.com",
+  projectId:"institute-op",
+  storageBucket:"institute-op.firebasestorage.app",
+  messagingSenderId:"218000499296",
+  appId:"1:218000499296:web:e53291c1f26574ff4e1905"
 };
+
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const auth=getAuth(fbApp);
@@ -239,79 +238,75 @@ const MN=['January','February','March','April','May','June','July','August','Sep
 // ── FIRESTORE ──
 const col_=c=>collection(db,c);
 const ref_=(c,id)=>doc(db,c,id);
-async function getAll(c){
-  var cons=Array.prototype.slice.call(arguments,1);
-  var q=cons.length?query.apply(null,[col_(c)].concat(cons)):col_(c);
-  var s=await getDocs(q);
-  return s.docs.map(function(d){return Object.assign({id:d.id},d.data());});
+async function getAll(c,...cons){
+  const q=cons.length?query(col_(c),...cons):col_(c);
+  const s=await getDocs(q);
+  return s.docs.map(d=>({id:d.id,...d.data()}));
 }
-async function getOne(c,id){var s=await getDoc(ref_(c,id));return s.exists()?Object.assign({id:s.id},s.data()):null;}
-async function save_(c,id,data){await setDoc(ref_(c,id),Object.assign({},data,{updatedAt:serverTimestamp()}),{merge:true});}
+async function getOne(c,id){const s=await getDoc(ref_(c,id));return s.exists()?{id:s.id,...s.data()}:null;}
+async function save_(c,id,data){await setDoc(ref_(c,id),{...data,updatedAt:serverTimestamp()},{merge:true});}
 async function del_(c,id){await deleteDoc(ref_(c,id));}
 
-// ── CACHE ──
-const _cache={},_cacheTime={},CACHE_TTL=30000;
-async function getAllCached(c){
-  var now=Date.now();
-  if(_cache[c]&&(now-(_cacheTime[c]||0))<CACHE_TTL)return _cache[c];
-  var res=await getAll(c);
-  _cache[c]=res;_cacheTime[c]=now;
-  return res;
-}
-function clearCache(c){delete _cache[c];delete _cacheTime[c];}
-
 // ── UI HELPERS ──
-const MY=function(m,y){return MN[m-1]+' '+y;};
-const clsL=function(c,cc){return c==='Other'?(cc||'Other'):('Class '+c);};
-const ini=function(n){return (n||'?').split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2)||'??';};
-const avH=function(n,s,f){s=s||38;f=f||14;return '<div class="av" style="width:'+s+'px;height:'+s+'px;font-size:'+f+'px">'+ini(n)+'</div>';};
-const cur=function(n){return '₹'+Number(n||0).toLocaleString('en-IN');};
-const spin_=function(){return '<div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>';};
-const err_=function(m){return '<div class="alert a-danger">❌ '+m+'</div>';};
-const uid_=function(){return Math.random().toString(36).slice(2,10)+Date.now().toString(36);};
-function setH(id,h){var e=document.getElementById(id);if(e)e.innerHTML=h;}
-function toast(msg,type){
-  type=type||'ok';
-  var t=document.createElement('div');
-  t.className='toast t-'+type;
-  t.textContent=msg;
-  document.body.appendChild(t);
-  setTimeout(function(){t.classList.add('show');},10);
-  setTimeout(function(){t.classList.remove('show');setTimeout(function(){t.remove();},400);},3500);
+const MY=(m,y)=>MN[m-1]+' '+y;
+const clsL=(c,cc)=>c==='Other'?(cc||'Other'):('Class '+c);
+const ini=n=>(n||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'??';
+const avH=(n,s=38,f=14)=>`<div class="av" style="width:${s}px;height:${s}px;font-size:${f}px">${ini(n)}</div>`;
+const cur=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+
+
+const TITLES={dashboard:'Dashboard',students:'Students',hostel:'Hostel Students',
+  teachers:'Teachers',reports:'Reports',settings:'Settings',
+  studentDetail:'Student Detail',teacherDetail:'Teacher Detail',
+  bulkUpload:'Bulk Upload',competition:'Competition Exams'};
+
+function onReady(){
+  document.getElementById('sbRole').textContent='👑 Director: '+(UDATA?.name||CU.email);
+  go('dashboard');
 }
 
-// ── ROLE CHECKS ──
-const isDir=function(){return true;};
-const isOp=function(){return false;};
-const isDirOrOp=function(){return true;};
-function opCanDelete(s){return true;}
-
-// ── MODAL ──
-window.openModal=function(t,b){
-  document.getElementById('modalTitle').textContent=t;
-  setH('modalBody',b);
-  document.getElementById('modalWrap').style.display='flex';
-};
-window.closeModal=function(){document.getElementById('modalWrap').style.display='none';};
-
-// ── SIDEBAR ──
-window.toggleSb=function(){
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sbOverlay').classList.toggle('show');
-};
-window.closeSb=function(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sbOverlay').classList.remove('show');
-};
-
-// ── LOGOUT ──
-window.doLogout=async function(){
-  sessionStorage.clear();
-  await signOut(auth);
-  window.location.href='index.html';
+const go=window.go=async function(page,params={}){
+  closeSb();PAGE=page;PARAMS=params;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const nav=document.querySelector(`[onclick*="'${page}'"]`);
+  if(nav)nav.classList.add('active');
+  document.getElementById('pgTitle').textContent=TITLES[page]||page;
+  setH('pageContent',spin_());
+  try{
+    let html='';
+    if(page==='dashboard')html=await pgDash();
+    else if(page==='students')html=await pgStudents();
+    else if(page==='hostel')html=await pgHostel();
+    else if(page==='teachers')html=await pgTeachers();
+    else if(page==='reports')html=await pgReports();
+    else if(page==='settings')html=await pgSettings();
+    else if(page==='studentDetail')html=await pgStudentDetail(params.id);
+    else if(page==='teacherDetail')html=await pgTeacherDetail(params.id);
+    else if(page==='bulkUpload')html=pgBulkUpload();
+    else if(page==='competition')html=await pgCompetition();
+    setH('pageContent',html);
+  }catch(e){setH('pageContent',err_(e.message||'Error'));console.error(e);}
+  window.scrollTo(0,0);
 };
 
-// ══ PAGE FUNCTIONS ══
+
+const spin_=()=>`<div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>`;
+const err_=m=>`<div class="alert a-danger">❌ ${m}</div>`;
+const uid_=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+const setH=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
+
+function toast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className=`toast t-${type}`;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
+}
+
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
 async function pgDash(){
   const [students,teachers,fees]=await Promise.all([getAll('students'),getAll('teachers'),getAll('fees')]);
   const now=new Date(),cm=now.getMonth()+1,cy=now.getFullYear();
@@ -1567,83 +1562,37 @@ window.chgPass=async function(){
   catch(e){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ '+e.message;}
 };
 
+let PAGE='dashboard',PARAMS={};
 
-// ══ NAVIGATION ══
-var PAGE='dashboard',PARAMS={};
-const TITLES={
-  dashboard:'Dashboard',students:'Students',hostel:'Hostel Students',
-  teachers:'All Teachers',reports:'Reports',settings:'Settings',
-  studentDetail:'Student Detail',teacherDetail:'Teacher Detail',
-  bulkUpload:'Bulk Upload',competition:'Competition Exams'
-};
-
-window.go=async function(page,params){
-  if(!params)params={};
-  closeSb();
-  PAGE=page;PARAMS=params;
-  // Remove active from all nav items
-  var items=document.querySelectorAll('.nav-item');
-  for(var i=0;i<items.length;i++){items[i].classList.remove('active');}
-  // Find matching nav item safely (no nested backtick)
-  var activeNav=null;
-  for(var j=0;j<items.length;j++){
-    var oc=items[j].getAttribute('onclick');
-    if(oc&&(oc.indexOf("'"+page+"'")>=0||oc.indexOf('"'+page+'"')>=0)){
-      activeNav=items[j];break;
-    }
-  }
-  if(activeNav)activeNav.classList.add('active');
-  document.getElementById('pgTitle').textContent=TITLES[page]||page;
-  setH('pageContent',spin_());
-  try{
-    var html='';
-    if(page==='dashboard')html=await pgDash();
-    else if(page==='students')html=await pgStudents();
-    else if(page==='hostel')html=await pgHostel();
-    else if(page==='teachers')html=await pgTeachers();
-    else if(page==='reports')html=await pgReports();
-    else if(page==='settings')html=await pgSettings();
-    else if(page==='studentDetail')html=await pgStudentDetail(params.id);
-    else if(page==='teacherDetail')html=await pgTeacherDetail(params.id);
-    else if(page==='bulkUpload')html=pgBulkUpload();
-    else if(page==='competition')html=await pgCompetition();
-    else html=err_('Page not found: '+page);
-    setH('pageContent',html);
-  }catch(e){
-    setH('pageContent',err_(e.message||'Error loading page'));
-    console.error('go() error:',e);
-  }
-  window.scrollTo(0,0);
-};
-
-// ══ AUTH GUARD ══
-onAuthStateChanged(auth,async function(user){
+onAuthStateChanged(auth,async user=>{
   if(!user){window.location.href='index.html';return;}
   CU=user;
-  try{
-    var cached=sessionStorage.getItem('ud_'+user.uid);
-    if(cached){UDATA=JSON.parse(cached);ROLE=UDATA.role;}
-    else{
-      UDATA=await getOne('users',user.uid);
-      if(!UDATA){await signOut(auth);window.location.href='index.html';return;}
-      ROLE=UDATA.role;
-      sessionStorage.setItem('ud_'+user.uid,JSON.stringify(UDATA));
-    }
-    var ci=sessionStorage.getItem('inst');
-    if(ci){INST=ci;}
-    else{
-      var st=await getOne('settings','main');
-      if(st&&st.institute_name){INST=st.institute_name;sessionStorage.setItem('inst',INST);}
-    }
-    document.getElementById('sbName').textContent='🏫 '+INST;
-    document.getElementById('sbRole').textContent='👑 Director: '+(UDATA.name||CU.email);
-    document.getElementById('tbUser').textContent=UDATA.name||CU.email;
-    go('dashboard');
-  }catch(e){
-    console.error('Auth error:',e);
-    window.location.href='index.html';
+  const cached=sessionStorage.getItem('ud_'+user.uid);
+  if(cached){UDATA=JSON.parse(cached);ROLE=UDATA.role;}
+  else{
+    UDATA=await getOne('users',user.uid);
+    if(!UDATA){await signOut(auth);window.location.href='index.html';return;}
+    ROLE=UDATA.role;
+    sessionStorage.setItem('ud_'+user.uid,JSON.stringify(UDATA));
   }
+  const ci=sessionStorage.getItem('inst');
+  if(ci){INST=ci;}
+  else{const st=await getOne('settings','main');if(st?.institute_name){INST=st.institute_name;sessionStorage.setItem('inst',INST);}}
+  document.getElementById('sbName').textContent='🏫 '+INST;
+  document.getElementById('tbUser').textContent=UDATA?.name||CU.email;
+  onReady();
 });
+window.doLogout=async()=>{sessionStorage.clear();await signOut(auth);window.location.href='index.html';};
+window.toggleSb=()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');};
+const closeSb=window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');};
+const openModal=window.openModal=(t,b)=>{document.getElementById('modalTitle').textContent=t;setH('modalBody',b);document.getElementById('modalWrap').style.display='flex';};
+const closeModal=window.closeModal=()=>{document.getElementById('modalWrap').style.display='none';};
+
+const isDir=()=>true;
+const isOp=()=>false;
+const isDirOrOp=()=>true;
+function opCanDelete(){return true;}
+
 </script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Operator Dashboard — School Management</title>
 <meta name="theme-color" content="#1a237e">
 <link rel="dns-prefetch" href="https://www.gstatic.com">
@@ -172,19 +172,19 @@ tbody tr:hover{background:#f6f8ff}
     <div class="sb-role" id="sbRole">📝 Operator</div>
   </div>
   <nav class="sb-nav">
-    <div class="nav-sec">मुख्य</div>
-    <div class="nav-item" onclick="go('dashboard')"><span class="ni">📊</span> Dashboard</div>
-    <div class="nav-sec">छात्र</div>
-    <div class="nav-item" onclick="go('students')"><span class="ni">🎓</span> All Students</div>
-    <div class="nav-item" onclick="go('hostel')"><span class="ni">🏠</span> Hostel</div>
-    <div class="nav-item" onclick="go('bulkUpload')"><span class="ni">📤</span> Bulk Upload</div>
-    <div class="nav-sec">प्रतियोगिता</div>
-    <div class="nav-item" onclick="go('competition')"><span class="ni">🏆</span> Competition</div>
-    <div class="nav-sec">रिपोर्ट</div>
-    <div class="nav-item" onclick="go('reports')"><span class="ni">📋</span> Reports</div>
-  </nav>
+  <div class="nav-sec">मुख्य</div>
+  <div class="nav-item active" onclick="go('dashboard')"><span class="ni">📊</span> Dashboard</div>
+  <div class="nav-sec">छात्र</div>
+  <div class="nav-item" onclick="go('students')"><span class="ni">🎓</span> All Students</div>
+  <div class="nav-item" onclick="go('hostel')"><span class="ni">🏠</span> Hostel</div>
+  <div class="nav-item" onclick="go('bulkUpload')"><span class="ni">📤</span> Bulk Upload</div>
+  <div class="nav-sec">प्रतियोगिता</div>
+  <div class="nav-item" onclick="go('competition')"><span class="ni">🏆</span> Competition</div>
+  <div class="nav-sec">रिपोर्ट</div>
+  <div class="nav-item" onclick="go('reports')"><span class="ni">📋</span> Reports</div>
+</nav>
   <div class="sb-foot">
-    <div class="nav-item" onclick="doLogout()"><span class="ni">🚪</span> Logout</div>
+    <div class="nav-item" onclick="doLogout()" style="border-radius:10px"><span class="ni">🚪</span> Logout</div>
   </div>
 </aside>
 <main class="main">
@@ -195,70 +195,89 @@ tbody tr:hover{background:#f6f8ff}
     </div>
     <span style="font-size:12px;color:var(--muted)" id="tbUser"></span>
   </div>
-  <div class="page" id="pageContent">
-    <div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>
-  </div>
+  <div class="page" id="pageContent"><div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div></div>
 </main>
 <div id="modalWrap" class="modal-wrap" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
-    <div class="modal-hd">
-      <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-hd"><div class="modal-title" id="modalTitle"></div>
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div id="modalBody"></div>
   </div>
 </div>
 <script type="module">
-import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import{getAuth,signOut,onAuthStateChanged,updatePassword,createUserWithEmailAndPassword}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const firebaseConfig={apiKey:"AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",authDomain:"institute-op.firebaseapp.com",projectId:"institute-op",storageBucket:"institute-op.firebasestorage.app",messagingSenderId:"218000499296",appId:"1:218000499296:web:e53291c1f26574ff4e1905"};
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getFirestore,collection,doc,setDoc,getDoc,getDocs,deleteDoc,query,where,serverTimestamp}
+  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged,updatePassword,createUserWithEmailAndPassword}
+  from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// ══ FIREBASE CONFIG ══
+const firebaseConfig={
+  apiKey:"AIzaSyAv5e1lTl6uAjpQm4WYT1fH_jwPOHiJ4u0",
+  authDomain:"institute-op.firebaseapp.com",
+  projectId:"institute-op",
+  storageBucket:"institute-op.firebasestorage.app",
+  messagingSenderId:"218000499296",
+  appId:"1:218000499296:web:e53291c1f26574ff4e1905"
+};
+
 const fbApp=initializeApp(firebaseConfig);
 const db=getFirestore(fbApp);
 const auth=getAuth(fbApp);
+
+// ── GLOBALS ──
 let CU=null,ROLE=null,UDATA=null,INST='School Management System';
 const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+// ── FIRESTORE ──
 const col_=c=>collection(db,c);
 const ref_=(c,id)=>doc(db,c,id);
-async function getAll(c,...cons){const q=cons.length?query(col_(c),...cons):col_(c);const s=await getDocs(q);return s.docs.map(d=>({id:d.id,...d.data()}));}
+async function getAll(c,...cons){
+  const q=cons.length?query(col_(c),...cons):col_(c);
+  const s=await getDocs(q);
+  return s.docs.map(d=>({id:d.id,...d.data()}));
+}
 async function getOne(c,id){const s=await getDoc(ref_(c,id));return s.exists()?{id:s.id,...s.data()}:null;}
 async function save_(c,id,data){await setDoc(ref_(c,id),{...data,updatedAt:serverTimestamp()},{merge:true});}
 async function del_(c,id){await deleteDoc(ref_(c,id));}
-const _cache={},_cacheTime={},CACHE_TTL=30000;
-async function getAllCached(c){const now=Date.now();if(_cache[c]&&(now-(_cacheTime[c]||0))<CACHE_TTL)return _cache[c];const res=await getAll(c);_cache[c]=res;_cacheTime[c]=now;return res;}
-function clearCache(c){delete _cache[c];delete _cacheTime[c];}
+
+// ── UI HELPERS ──
 const MY=(m,y)=>MN[m-1]+' '+y;
 const clsL=(c,cc)=>c==='Other'?(cc||'Other'):('Class '+c);
 const ini=n=>(n||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2)||'??';
-const avH=(n,s=38,f=14)=>'<div class="av" style="width:'+s+'px;height:'+s+'px;font-size:'+f+'px">'+ini(n)+'</div>';
-const cur=n=>'\u20b9'+Number(n||0).toLocaleString('en-IN');
-const spin_=()=>'<div class="empty"><div class="ei spin">\u23f3</div><p>Loading...</p></div>';
-const err_=m=>'<div class="alert a-danger">\u274c '+m+'</div>';
+const avH=(n,s=38,f=14)=>`<div class="av" style="width:${s}px;height:${s}px;font-size:${f}px">${ini(n)}</div>`;
+const cur=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const isDir=()=>ROLE==='director';
+const spin_=()=>`<div class="empty"><div class="ei spin">⏳</div><p>Loading...</p></div>`;
+const err_=m=>`<div class="alert a-danger">❌ ${m}</div>`;
 const uid_=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36);
-function setH(id,h){const e=document.getElementById(id);if(e)e.innerHTML=h;}
-function toast(msg,type){type=type||'ok';const t=document.createElement('div');t.className='toast t-'+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.classList.add('show'),10);setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);}
-window.openModal=(t,b)=>{document.getElementById('modalTitle').textContent=t;setH('modalBody',b);document.getElementById('modalWrap').style.display='flex';};
-window.closeModal=()=>{document.getElementById('modalWrap').style.display='none';};
-window.toggleSb=()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');};
-window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');};
-window.doLogout=async()=>{sessionStorage.clear();await signOut(auth);window.location.href='index.html';};
+const setH=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h;};
 
-// ROLE
-const isDir=()=>false;
-const isOp=()=>true;
-const isDirOrOp=()=>true;
-function opCanDelete(s){
-  const perms=window.__opPerms||[];
-  return perms.some(p=>{
-    if(p.type==='class')return clsL(s.class,s.customClass)===p.value;
-    if(p.type==='rollRange'&&s.rollNumber){const r=Number(s.rollNumber);return r>=p.from&&r<=p.to;}
-    return false;
-  });
+function toast(msg,type='ok'){
+  const t=document.createElement('div');
+  t.className=`toast t-${type}`;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),10);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),400);},3500);
 }
-getOne('settings','main').then(st=>{window.__opPerms=st&&st.operatorDeletePerms?st.operatorDeletePerms:[];});
 
-// PAGE FUNCTIONS
+// ── AUTH ──
+
+
+
+);
+  go('dashboard');
+}
+
+
+
+};
+
+// ══════════════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════════════
 async function pgDash(){
   const [students,teachers,fees]=await Promise.all([getAll('students'),getAll('teachers'),getAll('fees')]);
   const now=new Date(),cm=now.getMonth()+1,cy=now.getFullYear();
@@ -1514,24 +1533,120 @@ window.chgPass=async function(){
   catch(e){msg.className='alert a-danger';msg.style.display='block';msg.textContent='❌ '+e.message;}
 };
 
-// NAVIGATION
-var PAGE='dashboard',PARAMS={};
-const TITLES={dashboard:'Dashboard',students:'Students',hostel:'Hostel Students',teachers:'All Teachers',reports:'Reports',settings:'Settings',studentDetail:'Student Detail',teacherDetail:'Teacher Detail',bulkUpload:'Bulk Upload',competition:'Competition Exams'};
-window.go=async function(page,params){
-  if(!params)params={};
-  closeSb();PAGE=page;PARAMS=params;
-  var items=document.querySelectorAll('.nav-item');
-  for(var i=0;i<items.length;i++){items[i].classList.remove('active');}
-  var an=null;
-  for(var j=0;j<items.length;j++){
-    var oc=items[j].getAttribute('onclick');
-    if(oc&&(oc.indexOf("'"+page+"'")>=0||oc.indexOf('"'+page+'"')>=0)){an=items[j];break;}
+let PAGE='dashboard',PARAMS={};
+
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href='index.html';return;}
+  CU=user;
+  const cached=sessionStorage.getItem('ud_'+user.uid);
+  if(cached){UDATA=JSON.parse(cached);ROLE=UDATA.role;}
+  else{
+    UDATA=await getOne('users',user.uid);
+    if(!UDATA){await signOut(auth);window.location.href='index.html';return;}
+    ROLE=UDATA.role;
+    sessionStorage.setItem('ud_'+user.uid,JSON.stringify(UDATA));
   }
-  if(an)an.classList.add('active');
+  const ci=sessionStorage.getItem('inst');
+  if(ci){INST=ci;}
+  else{const st=await getOne('settings','main');if(st?.institute_name){INST=st.institute_name;sessionStorage.setItem('inst',INST);}}
+  document.getElementById('sbName').textContent='🏫 '+INST;
+  document.getElementById('tbUser').textContent=UDATA?.name||CU.email;
+  onReady();
+});
+window.doLogout=async()=>{sessionStorage.clear();await signOut(auth);window.location.href='index.html';};
+window.toggleSb=()=>{document.getElementById('sidebar').classList.toggle('open');document.getElementById('sbOverlay').classList.toggle('show');};
+const closeSb=window.closeSb=()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('sbOverlay').classList.remove('show');};
+const openModal=window.openModal=(t,b)=>{document.getElementById('modalTitle').textContent=t;setH('modalBody',b);document.getElementById('modalWrap').style.display='flex';};
+const closeModal=window.closeModal=()=>{document.getElementById('modalWrap').style.display='none';};
+
+// OPERATOR RESTRICTIONS
+const isDir=()=>false;
+const isOp=()=>true;
+const isDirOrOp=()=>true;
+function opCanDelete(s){
+  const perms=window.__opPerms||[];
+  return perms.some(p=>{
+    if(p.type==='class')return clsL(s.class,s.customClass)===p.value;
+    if(p.type==='rollRange'&&s.rollNumber){const r=Number(s.rollNumber);return r>=p.from&&r<=p.to;}
+    return false;
+  });
+}
+
+// Load operator delete permissions
+async function loadOpPerms(){
+  const st=await getOne('settings','main');
+  window.__opPerms=st?.operatorDeletePerms||[];
+}
+
+// Dashboard - operator version (no fees)
+async function pgDash(){
+  const [students,teachers]=await Promise.all([getAll('students'),getAll('teachers')]);
+  const hostel=students.filter(s=>s.type==='hostel').length;
+  const cd={};students.forEach(s=>{const k=clsL(s.class,s.customClass);cd[k]=(cd[k]||0)+1;});
+  return `
+  <div class="stats">
+    <div class="sc blue"><div class="sc-ico">🎓</div><div class="sc-val">${students.length}</div><div class="sc-lbl">Total Students</div></div>
+    <div class="sc gold"><div class="sc-ico">🏠</div><div class="sc-val">${hostel}</div><div class="sc-lbl">Hostel</div></div>
+    <div class="sc green"><div class="sc-ico">🚶</div><div class="sc-val">${students.length-hostel}</div><div class="sc-lbl">Day Scholar</div></div>
+    <div class="sc ora"><div class="sc-ico">👩‍🏫</div><div class="sc-val">${teachers.length}</div><div class="sc-lbl">Teachers</div></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-hd"><div class="card-title">📚 Class-wise Students</div>
+      <button class="btn btn-sm btn-accent" onclick="go('bulkUpload')">📤 Bulk Upload</button>
+    </div>
+    ${!Object.keys(cd).length
+      ?`<div class="empty"><div class="ei">📚</div><p>No students yet.</p></div>`
+      :`<div class="cls-grid">${Object.entries(cd).map(([c,n])=>
+          `<div class="cls-card" onclick="go('students')"><div class="cn">${c}</div><div class="cc">${n}</div><div class="cl">Students</div></div>`).join('')}</div>`}
+  </div>
+  <div class="alert a-info">
+    <strong>📝 Operator Role:</strong> You can add/edit students, upload data, and manage competition results.
+    Fee records are managed by the Director only.
+  </div>`;
+}
+
+// Reports - no fee data for operator
+async function pgReports(){
+  const sts=await getAll('students');
+  window.__rd={sts,fees:[],tch:[],sals:[]};
+  const cd={};sts.forEach(s=>{const k=clsL(s.class,s.customClass);if(!cd[k])cd[k]={t:0,h:0};cd[k].t++;if(s.type==='hostel')cd[k].h++;});
+  return`
+  <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn btn-outline" onclick="prtR('cw')">🖨️ Class-wise List</button>
+    <button class="btn btn-accent" onclick="expCSV()">📊 Export CSV</button>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-title">📚 Class-wise Count</div></div>
+    <div class="tw"><table>
+      <thead><tr><th>Class</th><th>Total</th><th>Hostel</th><th>Day Scholar</th></tr></thead>
+      <tbody>
+        ${Object.entries(cd).map(([c,d])=>`<tr><td><strong>${c}</strong></td><td><span class="badge b-blue">${d.t}</span></td><td>${d.h}</td><td>${d.t-d.h}</td></tr>`).join('')||'<tr><td colspan="4" style="text-align:center">No data</td></tr>'}
+        <tr style="background:var(--bg);font-weight:700"><td>TOTAL</td><td>${sts.length}</td>
+          <td>${sts.filter(s=>s.type==='hostel').length}</td><td>${sts.filter(s=>s.type!=='hostel').length}</td></tr>
+      </tbody>
+    </table></div>
+  </div>`;
+}
+
+const TITLES={dashboard:'Dashboard',students:'Students',hostel:'Hostel Students',
+  bulkUpload:'Bulk Upload',competition:'Competition Exams',reports:'Reports',
+  studentDetail:'Student Detail'};
+
+function onReady(){
+  document.getElementById('sbRole').textContent='📝 Operator: '+(UDATA?.name||CU.email);
+  loadOpPerms();
+  go('dashboard');
+}
+
+const go=window.go=async function(page,params={}){
+  closeSb();PAGE=page;PARAMS=params;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active'));
+  const nav=document.querySelector(`[onclick*="'${page}'"]`);
+  if(nav)nav.classList.add('active');
   document.getElementById('pgTitle').textContent=TITLES[page]||page;
   setH('pageContent',spin_());
   try{
-    var html='';
+    let html='';
     if(page==='dashboard')html=await pgDash();
     else if(page==='students')html=await pgStudents();
     else if(page==='hostel')html=await pgHostel();
@@ -1539,34 +1654,11 @@ window.go=async function(page,params){
     else if(page==='competition')html=await pgCompetition();
     else if(page==='reports')html=await pgReports();
     else if(page==='studentDetail')html=await pgStudentDetail(params.id);
-    else html=err_('Page not found: '+page);
     setH('pageContent',html);
   }catch(e){setH('pageContent',err_(e.message||'Error'));console.error(e);}
   window.scrollTo(0,0);
 };
 
-// AUTH GUARD
-onAuthStateChanged(auth,async function(user){
-  if(!user){window.location.href='index.html';return;}
-  CU=user;
-  try{
-    var cached=sessionStorage.getItem('ud_'+user.uid);
-    if(cached){UDATA=JSON.parse(cached);ROLE=UDATA.role;}
-    else{
-      UDATA=await getOne('users',user.uid);
-      if(!UDATA){await signOut(auth);window.location.href='index.html';return;}
-      ROLE=UDATA.role;
-      sessionStorage.setItem('ud_'+user.uid,JSON.stringify(UDATA));
-    }
-    var ci=sessionStorage.getItem('inst');
-    if(ci){INST=ci;}
-    else{var st=await getOne('settings','main');if(st&&st.institute_name){INST=st.institute_name;sessionStorage.setItem('inst',INST);}}
-    document.getElementById('sbName').textContent='🏫 '+INST;
-    document.getElementById('sbRole').textContent='📝 Operator: '+(UDATA.name||CU.email);
-    document.getElementById('tbUser').textContent=UDATA.name||CU.email;
-    go('dashboard');
-  }catch(e){console.error(e);window.location.href='index.html';}
-});
 </script>
 </body>
 </html>
