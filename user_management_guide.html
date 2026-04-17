@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>User Management Guide — School Management System</title>
+<style>
+:root{--p:#1a237e;--pl:#3949ab;--pd:#0d1642;--a:#f9a825;--s:#2e7d32;--d:#c62828;--w:#e65100;--bg:#eef0f5;--card:#fff;--text:#1e293b;--mu:#64748b;--br:#e2e8f0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#060d2e,#1a237e 50%,#283593);color:#fff;padding:60px 20px;text-align:center}
+.hero-icon{font-size:64px;display:block;margin-bottom:16px}
+.hero h1{font-size:clamp(22px,4vw,38px);font-weight:900;margin-bottom:10px}
+.hero p{font-size:15px;opacity:.75;max-width:560px;margin:0 auto 24px}
+.hero-badges{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hb{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700}
+.hb1{background:rgba(249,168,37,.9);color:#0d1642}
+.hb2{background:rgba(46,125,50,.9);color:#fff}
+.hb3{background:rgba(198,40,40,.9);color:#fff}
+
+/* LAYOUT */
+.container{max-width:920px;margin:0 auto;padding:36px 20px}
+
+/* ROLE CARDS */
+.roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;margin-bottom:36px}
+.role-card{background:var(--card);border-radius:16px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.08);border-top:5px solid transparent}
+.rc-dir{border-top-color:#f9a825}.rc-op{border-top-color:#3949ab}.rc-tch{border-top-color:#2e7d32}
+.role-card .ri{font-size:36px;margin-bottom:12px}
+.role-card h3{font-size:16px;font-weight:800;margin-bottom:10px}
+.role-card ul{padding-left:16px}
+.role-card li{font-size:13px;color:var(--mu);margin-bottom:5px}
+.can{color:var(--s)!important;font-weight:600}.cant{color:var(--d)!important}
+
+/* SECTION */
+.section{background:var(--card);border-radius:18px;padding:30px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:24px}
+.sec-hd{display:flex;align-items:center;gap:14px;margin-bottom:22px;padding-bottom:16px;border-bottom:2px solid var(--br)}
+.sec-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.si1{background:#fff8e1}.si2{background:#e8eaf6}.si3{background:#e8f5e9}.si4{background:#fff3e0}.si5{background:#fce4ec}
+.sec-title{font-size:20px;font-weight:900;color:var(--p)}
+.sec-sub{font-size:13px;color:var(--mu);margin-top:3px}
+.part-badge{background:var(--p);color:#fff;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:800;display:inline-block;margin-bottom:6px}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:16px}
+.step{display:flex;gap:14px;align-items:flex-start}
+.sn{width:34px;height:34px;border-radius:50%;background:var(--p);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;box-shadow:0 3px 8px rgba(26,35,126,.3)}
+.sb{flex:1}
+.st{font-size:15px;font-weight:700;color:#1f2937;margin-bottom:5px}
+.sd{font-size:13.5px;color:#4b5563}
+
+/* SCREENS */
+.screen{background:#0f172a;border-radius:14px;padding:0;overflow:hidden;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.screen-bar{background:#1e293b;padding:10px 16px;display:flex;align-items:center;gap:8px}
+.screen-bar span{font-size:12px;color:#64748b;font-family:'Courier New',monospace}
+.screen-dots{display:flex;gap:5px}
+.dot{width:10px;height:10px;border-radius:50%}
+.dr{background:#ef4444}.dy{background:#f59e0b}.dg{background:#22c55e}
+.screen-body{padding:20px}
+.mock-ui{background:#1e293b;border-radius:10px;overflow:hidden}
+.mock-topbar{background:#0d1642;padding:10px 16px;font-size:12px;color:#94a3b8;font-weight:700}
+.mock-content{padding:16px}
+.mock-form{display:flex;flex-direction:column;gap:10px}
+.mock-field{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 14px}
+.mf-label{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.mf-value{font-size:13px;color:#e2e8f0;font-family:'Courier New',monospace}
+.mock-btn{background:var(--a);color:#0d1642;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;align-self:flex-start;margin-top:6px}
+.mock-nav{display:flex;flex-direction:column;gap:2px}
+.mn-item{padding:9px 12px;border-radius:8px;font-size:12px;color:#94a3b8;display:flex;align-items:center;gap:8px}
+.mn-item.active{background:rgba(255,255,255,.1);color:var(--a);border-right:3px solid var(--a)}
+.mock-split{display:grid;grid-template-columns:140px 1fr;gap:12px}
+.mock-sidebar{background:#060d2e;border-radius:10px;padding:10px}
+.mock-main{background:#1e293b;border-radius:10px;padding:14px}
+.mock-title{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:10px}
+.mock-table{width:100%;border-collapse:collapse;font-size:11px}
+.mock-table th{background:#0f172a;color:#64748b;padding:6px 8px;text-align:left}
+.mock-table td{color:#cbd5e1;padding:6px 8px;border-bottom:1px solid #1e293b}
+.tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.tag-dir{background:rgba(249,168,37,.2);color:#f9a825}
+.tag-op{background:rgba(57,73,171,.3);color:#90caf9}
+.tag-tch{background:rgba(46,125,50,.25);color:#81c784}
+
+/* ALERT */
+.alert{padding:13px 16px;border-radius:10px;margin:14px 0;font-size:13.5px;display:flex;gap:10px;align-items:flex-start}
+.ai{background:#eff6ff;border-left:4px solid #3b82f6;color:#1e3a5f}
+.aw{background:#fffbeb;border-left:4px solid #f59e0b;color:#78350f}
+.ao{background:#f0fdf4;border-left:4px solid #22c55e;color:#14532d}
+.ae{background:#fef2f2;border-left:4px solid #ef4444;color:#7f1d1d}
+
+/* CODE */
+code{background:#f1f5f9;padding:2px 7px;border-radius:5px;font-family:'Courier New',monospace;font-size:12.5px;color:#be185d;border:1px solid #e2e8f0}
+pre{background:#0f172a;color:#e2e8f0;padding:18px;border-radius:12px;overflow-x:auto;font-size:13px;margin:12px 0;line-height:1.8}
+pre .k{color:#7dd3fc}pre .v{color:#86efac}pre .c{color:#475569}
+
+/* TABLE */
+.tw{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-weight:700;color:var(--mu);font-size:11px;text-transform:uppercase;border-bottom:2px solid var(--br)}
+td{padding:11px 14px;border-bottom:1px solid var(--br);vertical-align:top}
+tr:hover td{background:#f8fafc}
+.pill{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.pg{background:#dcfce7;color:#166534}.pr{background:#fee2e2;color:#991b1b}.pb{background:#dbeafe;color:#1e40af}.po{background:#fed7aa;color:#9a3412}
+
+/* CHECKLIST */
+.cklist{list-style:none;padding:0}
+.cklist li{padding:10px 0;border-bottom:1px solid var(--br);font-size:14px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.ck{width:22px;height:22px;border:2px solid var(--p);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.cklist li.done .ck{background:var(--s);border-color:var(--s);color:#fff}
+.cklist li.done .ck::after{content:'✓';font-size:13px;font-weight:900}
+.cklist li.done span{text-decoration:line-through;color:var(--mu)}
+
+/* PERMS */
+.perm-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+.perm-box{border:2px solid var(--br);border-radius:12px;padding:18px}
+.perm-box h4{font-size:14px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.perm-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--br)}
+.perm-item:last-child{border-bottom:none}
+.pi-yes{color:var(--s);font-weight:700}.pi-no{color:var(--d)}
+
+/* FLOW */
+.flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:16px 0}
+.flow-box{background:var(--p);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;text-align:center}
+.flow-arrow{font-size:20px;color:var(--mu);padding:0 8px}
+.flow-box.success{background:var(--s)}
+.flow-box.warn{background:var(--w)}
+
+h3{font-size:16px;font-weight:800;color:var(--p);margin:22px 0 12px}
+p{font-size:14px;color:#4b5563;margin-bottom:10px}
+@media(max-width:600px){
+  .roles{grid-template-columns:1fr}
+  .perm-grid{grid-template-columns:1fr}
+  .section{padding:18px}
+  .mock-split{grid-template-columns:1fr}
+  .mock-sidebar{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-icon">👑</span>
+  <h1>User Management Guide</h1>
+  <p>Director कैसे Teacher और Operator को access देता है — पूरी guide</p>
+  <div class="hero-badges">
+    <span class="hb hb1">👑 Director</span>
+    <span class="hb hb2">👩‍🏫 Teacher</span>
+    <span class="hb hb3">📝 Operator</span>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ROLE OVERVIEW -->
+<div style="margin-bottom:10px">
+  <h3 style="font-size:20px;margin-bottom:16px">👥 तीन Roles — क्या कर सकते हैं?</h3>
+</div>
+<div class="roles">
+  <div class="role-card rc-dir">
+    <div class="ri">👑</div>
+    <h3>Director</h3>
+    <ul>
+      <li class="can">✅ सब कुछ देख सकते हैं</li>
+      <li class="can">✅ Students add/edit/delete</li>
+      <li class="can">✅ Fees manage करना</li>
+      <li class="can">✅ Teachers manage करना</li>
+      <li class="can">✅ Salary track करना</li>
+      <li class="can">✅ Competition manage करना</li>
+      <li class="can">✅ Operator & Teacher बनाना</li>
+      <li class="can">✅ Delete permissions देना</li>
+      <li class="can">✅ Reports & Settings</li>
+    </ul>
+  </div>
+  <div class="role-card rc-op">
+    <div class="ri">📝</div>
+    <h3>Data Entry Operator</h3>
+    <ul>
+      <li class="can">✅ Students add/edit</li>
+      <li class="can">✅ Bulk Upload</li>
+      <li class="can">✅ Competition results add/edit/delete</li>
+      <li class="can">✅ Reports देखना (fees के बिना)</li>
+      <li class="cant">❌ Fees नहीं देख सकता</li>
+      <li class="cant">❌ Teacher salary नहीं</li>
+      <li class="cant">❌ Students delete (जब तक Director permission न दे)</li>
+      <li class="cant">❌ Settings नहीं</li>
+    </ul>
+  </div>
+  <div class="role-card rc-tch">
+    <div class="ri">👩‍🏫</div>
+    <h3>Teacher</h3>
+    <ul>
+      <li class="can">✅ Students देख सकते हैं (view only)</li>
+      <li class="can">✅ Hostel students देखना</li>
+      <li class="can">✅ Competition results देखना</li>
+      <li class="can">✅ CSV export करना</li>
+      <li class="cant">❌ Students add/edit/delete नहीं</li>
+      <li class="cant">❌ Fees नहीं दिखतीं</li>
+      <li class="cant">❌ Bulk Upload नहीं</li>
+      <li class="cant">❌ Settings, Salary नहीं</li>
+    </ul>
+  </div>
+</div>
+
+<!-- LOGIN FLOW -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si1">🔄</div>
+    <div><div class="part-badge">FLOW</div>
+    <div class="sec-title">Login होने पर क्या होता है?</div>
+    <div class="sec-sub">index.html → Firebase → role check → redirect</div></div>
+  </div>
+
+  <div class="flow">
+    <div class="flow-box">🌐 index.html<br>Login Page</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">🔥 Firebase<br>Auth Check</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box">🗄️ Firestore<br>role देखो</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box success">👑 director<br>director.html</div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box warn">📝 operator<br>operator.html</div>
+  </div>
+  <div class="flow" style="margin-top:8px">
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow" style="visibility:hidden">→</div>
+    <div class="flow-box" style="visibility:hidden">placeholder</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-box" style="background:var(--s)">👩‍🏫 teacher<br>teacher.html</div>
+  </div>
+
+  <div class="alert ai" style="margin-top:18px">
+    <span>ℹ️</span>
+    <div>तीनों role के login के लिए <strong>same index.html</strong> use होता है। Firebase Firestore में <code>users</code> collection में जो <strong>role</strong> field है, उसी के हिसाब से redirect होता है।</div>
+  </div>
+</div>
+
+<!-- PART 1: TEACHER ADD KARNA -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si3">👩‍🏫</div>
+    <div><div class="part-badge">PART 1</div>
+    <div class="sec-title">Teacher Account बनाना</div>
+    <div class="sec-sub">Director → Website → Settings → Teacher add करें</div></div>
+  </div>
+
+  <div class="alert ao">
+    <span>✅</span>
+    <div><strong>अच्छी बात:</strong> Teacher का Firebase account automatically बनता है। आपको Firebase Console में manually कुछ नहीं करना।</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Director के रूप में Login करें</div>
+        <div class="sd">Website खोलें → <code>index.html</code> → Director email & password डालें → Login करें → <strong>director.html</strong> खुलेगा।</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Left Sidebar में "All Teachers" पर click करें</div>
+        <div class="sd">Sidebar में 👩‍🏫 <strong>All Teachers</strong> दिखेगा → उस पर click करें।</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">"➕ Add Teacher" button दबाएं</div>
+        <div class="sd">एक form खुलेगा जिसमें ये fields होंगी:</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mock Screen: Add Teacher Form -->
+  <div class="screen">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+      <span>Add Teacher — School Management System</span>
+    </div>
+    <div class="screen-body">
+      <div class="mock-ui">
+        <div class="mock-topbar">➕ Add Teacher</div>
+        <div class="mock-content">
+          <div class="mock-form">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="mock-field">
+                <div class="mf-label">Full Name ★</div>
+                <div class="mf-value">Rahul Kumar</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Email ★ (Login ID)</div>
+                <div class="mf-value">rahul@school.com</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Password ★</div>
+                <div class="mf-value">teacher@123</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Mobile ★</div>
+                <div class="mf-value">9876543210</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Designation</div>
+                <div class="mf-value">Maths Teacher</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Classes Assigned</div>
+                <div class="mf-value">Class 9, Class 10</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Monthly Salary ₹</div>
+                <div class="mf-value">12000</div>
+              </div>
+              <div class="mock-field">
+                <div class="mf-label">Joining Month ★</div>
+                <div class="mf-value">April 2025</div>
+              </div>
+            </div>
+            <button class="mock-btn">💾 Save Teacher</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:16px">
+    <div class="step">
+      <div class="sn">4</div>
+      <div class="sb">
+        <div class="st">Form भरकर "💾 Save Teacher" दबाएं</div>
+        <div class="sd">System automatically करेगा:
+          <br>• Firebase Authentication में teacher का account बनाएगा
+          <br>• Firestore <code>users</code> collection में <code>role: "teacher"</code> के साथ document बनाएगा
+          <br>• Firestore <code>teachers</code> collection में teacher का data save करेगा
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">5</div>
+      <div class="sb">
+        <div class="st">Popup दिखेगा — Credentials नोट करें</div>
+        <div class="sd">एक popup आएगा जिसमें दिखेगा:</div>
+      </div>
+    </div>
+  </div>
+
+<pre>
+<span class="ok">✅ Teacher Added!</span>
+Email:    <span class="v">rahul@school.com</span>
+Password: <span class="v">teacher@123</span>
+
+<span class="c">यह details Teacher को दें — इसी से login होगा</span>
+</pre>
+
+  <div class="alert aw">
+    <span>⚠️</span>
+    <div><strong>Password याद रखें!</strong> Default password <code>teacher@123</code> है। Teacher को login के बाद Settings से password बदलने को कहें।</div>
+  </div>
+
+  <h3>Teacher कैसे Login करेगा?</h3>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Teacher website खोले</div>
+        <div class="sd">Same URL जो आपकी website का है → <code>index.html</code></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Email और Password डाले</div>
+        <div class="sd">Email: <code>rahul@school.com</code> | Password: <code>teacher@123</code> → Login दबाए</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">teacher.html automatically खुलेगा</div>
+        <div class="sd">Teacher को <strong>teacher.html</strong> का dashboard दिखेगा — सिर्फ Students, Hostel, Competition देख सकेगा।</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 2: OPERATOR ADD KARNA -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si2">📝</div>
+    <div><div class="part-badge">PART 2</div>
+    <div class="sec-title">Operator Account बनाना</div>
+    <div class="sec-sub">Director → Settings → Operators → Add करें</div></div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Director Login करके Settings खोलें</div>
+        <div class="sd">Sidebar में ⚙️ <strong>Settings</strong> पर click करें।</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">"📝 Data Entry Operators" section ढूंढें</div>
+        <div class="sd">Settings page को नीचे scroll करें — <strong>"📝 Data Entry Operators"</strong> section दिखेगा। <strong>"➕ Add Operator"</strong> button दबाएं।</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Form भरें</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mock: Add Operator Form -->
+  <div class="screen">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+      <span>Settings → Add Operator</span>
+    </div>
+    <div class="screen-body">
+      <div class="mock-ui">
+        <div class="mock-topbar">➕ Add Data Entry Operator</div>
+        <div class="mock-content">
+          <div class="mock-form">
+            <div class="mock-field">
+              <div class="mf-label">Full Name ★</div>
+              <div class="mf-value">Imran Khan</div>
+            </div>
+            <div class="mock-field">
+              <div class="mf-label">Email ★</div>
+              <div class="mf-value">imran@school.com</div>
+            </div>
+            <div class="mock-field">
+              <div class="mf-label">Password ★</div>
+              <div class="mf-value">operator@123</div>
+            </div>
+            <button class="mock-btn">💾 Add Operator</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:16px">
+    <div class="step">
+      <div class="sn">4</div>
+      <div class="sb">
+        <div class="st">Save करने पर popup दिखेगा</div>
+        <div class="sd">Operator का account बन जाएगा। Toast message आएगा:</div>
+      </div>
+    </div>
+  </div>
+
+<pre>
+<span class="ok">✅ Operator added!</span>
+Email:    <span class="v">imran@school.com</span>
+Password: <span class="v">operator@123</span>
+</pre>
+
+  <h3>Operator का Dashboard कैसा दिखेगा?</h3>
+
+  <!-- Mock: Operator Dashboard -->
+  <div class="screen">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+      <span>operator.html — Operator Dashboard</span>
+    </div>
+    <div class="screen-body">
+      <div class="mock-split">
+        <div class="mock-sidebar">
+          <div style="font-size:11px;color:#f9a825;font-weight:800;margin-bottom:12px">🏫 School</div>
+          <div style="font-size:10px;color:#475569;margin-bottom:6px">📝 Operator: Imran</div>
+          <div class="mock-nav">
+            <div class="mn-item active">📊 Dashboard</div>
+            <div class="mn-item">🎓 Students</div>
+            <div class="mn-item">🏠 Hostel</div>
+            <div class="mn-item">📤 Bulk Upload</div>
+            <div class="mn-item">🏆 Competition</div>
+            <div class="mn-item">📋 Reports</div>
+            <div style="margin-top:8px;padding:8px 12px;font-size:11px;color:#ef4444;cursor:pointer">🚪 Logout</div>
+          </div>
+        </div>
+        <div class="mock-main">
+          <div class="mock-title">📊 Dashboard</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+            <div style="background:#0f172a;border-radius:8px;padding:10px;border-left:3px solid #3949ab">
+              <div style="font-size:10px;color:#64748b">Total Students</div>
+              <div style="font-size:20px;font-weight:900;color:#90caf9">247</div>
+            </div>
+            <div style="background:#0f172a;border-radius:8px;padding:10px;border-left:3px solid #f9a825">
+              <div style="font-size:10px;color:#64748b">Hostel</div>
+              <div style="font-size:20px;font-weight:900;color:#f9a825">89</div>
+            </div>
+          </div>
+          <div style="background:#1a2744;border-radius:6px;padding:8px;font-size:10px;color:#64748b">
+            ℹ️ Fee records Director only — आपको fees नहीं दिखेंगी
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 3: DELETE PERMISSION -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si4">🔐</div>
+    <div><div class="part-badge">PART 3</div>
+    <div class="sec-title">Operator को Delete Permission देना</div>
+    <div class="sec-sub">Director decide करता है — कौन से students Operator delete कर सकता है</div></div>
+  </div>
+
+  <div class="alert ai">
+    <span>ℹ️</span>
+    <div><strong>By default:</strong> Operator कोई भी student delete नहीं कर सकता। Director जब चाहे specific class या roll number range के लिए permission दे सकता है।</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Settings page खोलें</div>
+        <div class="sd">Director login → Sidebar → ⚙️ Settings</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">"🔐 Operator Delete Permissions" section ढूंढें</div>
+        <div class="sd">Page के नीचे यह section है। यहाँ दो तरह की permission दे सकते हैं:</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="perm-grid">
+    <div class="perm-box">
+      <h4>📚 Class के हिसाब से</h4>
+      <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Operator एक पूरी class के students delete कर सकेगा</p>
+      <!-- Mock -->
+      <div style="background:#f8fafc;border-radius:8px;padding:10px">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px">Class select करें:</div>
+        <select style="width:100%;padding:7px;border:1px solid var(--br);border-radius:6px;font-size:12px;margin-bottom:8px">
+          <option>-- Select Class --</option>
+          <option selected>Class 10</option>
+        </select>
+        <button style="background:var(--p);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;width:100%">➕ Allow This Class</button>
+      </div>
+    </div>
+    <div class="perm-box">
+      <h4>🔢 Roll Number Range से</h4>
+      <p style="font-size:12px;color:var(--mu);margin-bottom:10px">Operator specific roll numbers वाले students delete कर सकेगा</p>
+      <div style="background:#f8fafc;border-radius:8px;padding:10px">
+        <div style="font-size:12px;color:#64748b;margin-bottom:6px">Roll number range:</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+          <input type="number" placeholder="From: 1" style="padding:7px;border:1px solid var(--br);border-radius:6px;font-size:12px">
+          <input type="number" placeholder="To: 50" style="padding:7px;border:1px solid var(--br);border-radius:6px;font-size:12px">
+        </div>
+        <button style="background:var(--p);color:#fff;border:none;padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;width:100%">➕ Allow This Range</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mock: Permissions Added -->
+  <div class="screen" style="margin-top:16px">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+      <span>Settings → Operator Delete Permissions</span>
+    </div>
+    <div class="screen-body">
+      <div class="mock-ui">
+        <div class="mock-topbar">🔐 Current Permissions</div>
+        <div class="mock-content">
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div style="background:#1e293b;border-radius:20px;padding:6px 14px;font-size:12px;color:#90caf9;display:flex;align-items:center;gap:8px">
+              📚 Class 10
+              <span style="color:#ef4444;cursor:pointer;font-weight:900">✕</span>
+            </div>
+            <div style="background:#1e293b;border-radius:20px;padding:6px 14px;font-size:12px;color:#90caf9;display:flex;align-items:center;gap:8px">
+              🔢 Roll 1–50
+              <span style="color:#ef4444;cursor:pointer;font-weight:900">✕</span>
+            </div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:#475569">
+            ✕ पर click करके permission कभी भी हटा सकते हैं
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="alert ao" style="margin-top:14px">
+    <span>✅</span>
+    <div>Permission देने के बाद Operator के student table में उन्हीं students के सामने <strong>🗑 Delete button</strong> दिखेगा जिनके लिए permission है।</div>
+  </div>
+</div>
+
+<!-- PART 4: MANAGE EXISTING -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si5">⚙️</div>
+    <div><div class="part-badge">PART 4</div>
+    <div class="sec-title">Existing Users Manage करना</div>
+    <div class="sec-sub">Users देखें, हटाएं, password reset करें</div></div>
+  </div>
+
+  <h3>Teacher/Operator की List देखें</h3>
+  <p>Settings → नीचे scroll करें → Teachers और Operators की list दिखेगी।</p>
+
+  <!-- Mock: User List -->
+  <div class="screen">
+    <div class="screen-bar">
+      <div class="screen-dots"><div class="dot dr"></div><div class="dot dy"></div><div class="dot dg"></div></div>
+      <span>Settings → User Accounts</span>
+    </div>
+    <div class="screen-body">
+      <div class="mock-ui">
+        <div class="mock-topbar">👥 All User Accounts</div>
+        <div class="mock-content">
+          <table class="mock-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color:#e2e8f0">Director</td>
+                <td style="color:#94a3b8">director@school.com</td>
+                <td><span class="tag tag-dir">director</span></td>
+                <td style="color:#64748b">—</td>
+              </tr>
+              <tr>
+                <td style="color:#e2e8f0">Rahul Kumar</td>
+                <td style="color:#94a3b8">rahul@school.com</td>
+                <td><span class="tag tag-tch">teacher</span></td>
+                <td><span style="color:#ef4444;font-size:11px;cursor:pointer">🗑 Remove</span></td>
+              </tr>
+              <tr>
+                <td style="color:#e2e8f0">Imran Khan</td>
+                <td style="color:#94a3b8">imran@school.com</td>
+                <td><span class="tag tag-op">operator</span></td>
+                <td><span style="color:#ef4444;font-size:11px;cursor:pointer">🗑 Remove</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3>User को Remove करना</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Settings में Teacher/Operator list खोलें</div>
+        <div class="sd">Director Login → Settings → Teacher Accounts या Data Entry Operators section</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">"🗑 Remove" button दबाएं</div>
+        <div class="sd">User का Firestore account हट जाएगा। Firebase Authentication से भी manually हटाना हो तो Firebase Console → Authentication → Users → Delete।</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Password Reset करना</h3>
+  <div class="alert ai">
+    <span>ℹ️</span>
+    <div>अभी website से directly password reset नहीं होता। इसके लिए:
+      <br><strong>Option 1:</strong> Teacher/Operator को खुद login करके Settings → Change Password से बदलने दें।
+      <br><strong>Option 2:</strong> Firebase Console → Authentication → Users → उस user के "..." → Reset password email भेजें।
+    </div>
+  </div>
+
+  <h3>Director का Password बदलना</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Director Dashboard → Settings</div>
+        <div class="sd">Sidebar → ⚙️ Settings → <strong>"🔑 Change My Password"</strong> section</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">New Password डालें और Confirm करें</div>
+        <div class="sd">Minimum 6 characters → <strong>"🔒 Update Password"</strong> → Done!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PART 5: FIRESTORE MANUAL -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si2">🗄️</div>
+    <div><div class="part-badge">PART 5</div>
+    <div class="sec-title">Firebase Console से Manual User बनाना</div>
+    <div class="sec-sub">अगर website काम न करे तो backup method</div></div>
+  </div>
+
+  <div class="alert aw">
+    <span>⚠️</span>
+    <div>यह method सिर्फ तब use करें जब website से add करना work न कर रहा हो। Normal use में <strong>website से ही</strong> users बनाएं।</div>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div class="sb">
+        <div class="st">Firebase Console → Authentication → Add User</div>
+        <div class="sd"><code>console.firebase.google.com</code> → आपका project → Authentication → Users → Add user</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div class="sb">
+        <div class="st">Email & Password डालें → Add user → UID Copy करें</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">3</div>
+      <div class="sb">
+        <div class="st">Firestore → users collection → Add document</div>
+        <div class="sd">Document ID = UID (जो copy किया)</div>
+      </div>
+    </div>
+  </div>
+
+<pre>
+<span class="c">// Teacher के लिए:</span>
+Document ID: <span class="k">xK9mP2qR8sT4vW6nY1z</span>  <span class="c">← Auth UID</span>
+Fields:
+  name  → string → <span class="v">"Rahul Kumar"</span>
+  role  → string → <span class="v">"teacher"</span>    <span class="c">← lowercase!</span>
+  email → string → <span class="v">"rahul@school.com"</span>
+
+<span class="c">// Operator के लिए:</span>
+Document ID: <span class="k">aB3cD4eF5gH6iJ7kL8m</span>
+Fields:
+  name  → string → <span class="v">"Imran Khan"</span>
+  role  → string → <span class="v">"operator"</span>   <span class="c">← lowercase!</span>
+  email → string → <span class="v">"imran@school.com"</span>
+</pre>
+
+  <div class="alert ae">
+    <span>❌</span>
+    <div><strong>Common Mistake:</strong> role field में <code>Teacher</code> या <code>Operator</code> (capital letter) लिखना। यह <strong>हमेशा lowercase</strong> होना चाहिए: <code>teacher</code> / <code>operator</code> / <code>director</code></div>
+  </div>
+</div>
+
+<!-- PART 6: QUICK REFERENCE -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si1">📋</div>
+    <div><div class="part-badge">QUICK REF</div>
+    <div class="sec-title">Quick Reference — Permissions Table</div></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>👑 Director</th>
+          <th>📝 Operator</th>
+          <th>👩‍🏫 Teacher</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Dashboard</strong></td><td><span class="pill pg">✅ Full</span></td><td><span class="pill pb">✅ Limited</span></td><td><span class="pill pb">✅ Limited</span></td></tr>
+        <tr><td><strong>Students देखना</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td></tr>
+        <tr><td><strong>Students Add/Edit</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Students Delete</strong></td><td><span class="pill pg">✅ सब</span></td><td><span class="pill po">⚠️ Permission से</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Bulk Upload</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Fees देखना/Add करना</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Competition Add/Edit</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Competition देखना</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td><td><span class="pill pg">✅</span></td></tr>
+        <tr><td><strong>Teachers Manage</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Salary Track करना</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Reports</strong></td><td><span class="pill pg">✅ Full</span></td><td><span class="pill pb">✅ No fees</span></td><td><span class="pill pb">✅ No fees</span></td></tr>
+        <tr><td><strong>Settings</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td><td><span class="pill pr">❌</span></td></tr>
+        <tr><td><strong>Users बनाना</strong></td><td><span class="pill pg">✅</span></td><td><span class="pill pr">❌</span></td><td><span class="pill pr">❌</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon si3">✅</div>
+    <div><div class="part-badge">CHECKLIST</div>
+    <div class="sec-title">User Setup Checklist</div>
+    <div class="sec-sub">Click करके mark करें</div></div>
+  </div>
+
+  <h3>Teacher Setup</h3>
+  <ul class="cklist">
+    <li onclick="T(this)"><div class="ck"></div><span>Director login किया</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>All Teachers → Add Teacher खोला</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Teacher का नाम, email, password भरा</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Monthly salary set किया</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Save किया — popup में credentials देखे</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Teacher को email & password दिया</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Teacher का login test किया — teacher.html खुला</span></li>
+  </ul>
+
+  <h3>Operator Setup</h3>
+  <ul class="cklist">
+    <li onclick="T(this)"><div class="ck"></div><span>Settings → Add Operator खोला</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Operator का नाम, email, password भरा</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Save किया</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Operator को credentials दिया</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Operator का login test किया — operator.html खुला</span></li>
+  </ul>
+
+  <h3>Operator Delete Permissions (Optional)</h3>
+  <ul class="cklist">
+    <li onclick="T(this)"><div class="ck"></div><span>Settings → Operator Delete Permissions खोला</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Class या Roll range select करके permission दी</span></li>
+    <li onclick="T(this)"><div class="ck"></div><span>Operator login में check किया — सही students पर Delete button दिखा</span></li>
+  </ul>
+
+  <div class="alert ao" style="margin-top:20px">
+    <span>🎉</span>
+    <div><strong>सब हो गया!</strong> अब Director, Teacher और Operator तीनों अपने-अपने dashboard पर सही access के साथ काम कर सकते हैं।</div>
+  </div>
+</div>
+
+<!-- TROUBLESHOOT -->
+<div class="section">
+  <div class="sec-hd">
+    <div class="sec-icon" style="background:#fef2f2">🔧</div>
+    <div><div class="part-badge">TROUBLESHOOT</div>
+    <div class="sec-title">Common Problems</div></div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Problem</th><th>Fix</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Teacher login करने पर index.html पर वापस आ जाता है</td>
+          <td>Firestore → users collection → Teacher के document में <code>role: "teacher"</code> (lowercase) check करें। Document ID = Firebase Auth UID होनी चाहिए।</td>
+        </tr>
+        <tr>
+          <td>Operator को fees दिख रही हैं</td>
+          <td>Check करें कि वो <code>operator.html</code> पर है न कि <code>director.html</code> पर। Firestore में role <code>"operator"</code> है?</td>
+        </tr>
+        <tr>
+          <td>Teacher को Delete button दिख रहा है</td>
+          <td>Files ठीक से upload हैं? GitHub पर latest teacher.html है? Cache clear करें।</td>
+        </tr>
+        <tr>
+          <td>Operator को Delete button नहीं दिख रहा</td>
+          <td>Settings → Operator Delete Permissions में class/roll permission दी है? Permission save हुई?</td>
+        </tr>
+        <tr>
+          <td>"Email ya password galat hai" error</td>
+          <td>Firebase Console → Authentication → Users में वो email है? Password correct है?</td>
+        </tr>
+        <tr>
+          <td>New teacher को कुछ pages error दे रहे हैं</td>
+          <td>Firestore Indexes बने हैं? (fees, salaries, compResults) — Console में error link से बनाएं।</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:40px 20px;color:var(--mu);font-size:13px">
+  <div style="font-size:32px;margin-bottom:10px">🏫</div>
+  <p style="font-weight:700;color:var(--p);font-size:15px">School Management System</p>
+  <p style="margin-top:6px">User Management Guide — Director • Operator • Teacher</p>
+  <p style="margin-top:10px;font-size:12px">Firebase Project: <code>institute-op</code></p>
+</div>
+
+</div>
+
+<script>
+function T(el){
+  el.classList.toggle('done');
+  try{localStorage.setItem('ug_'+Array.from(el.parentElement.children).indexOf(el)+'_'+el.parentElement.id,el.classList.contains('done')?'1':'0');}catch(e){}
+}
+document.querySelectorAll('.cklist li').forEach(function(li,i){
+  try{if(localStorage.getItem('ug_'+i+'_'+(li.parentElement.id||''))==='1')li.classList.add('done');}catch(e){}
+});
+</script>
+</body>
+</html>
